@@ -17,9 +17,11 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	neturl "net/url"
 	"os"
 	"strconv"
 	"time"
@@ -90,6 +92,12 @@ func post(ctx context.Context, url, token string, body []byte) (Result, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		r.Seconds = time.Since(t0).Seconds()
+		// Drop the URL from the error: Cloudflare's contains the account ID,
+		// and receipts are published.
+		var ue *neturl.Error
+		if errors.As(err, &ue) {
+			err = fmt.Errorf("%s request failed: %w", ue.Op, ue.Err)
+		}
 		return r, err
 	}
 	defer resp.Body.Close()

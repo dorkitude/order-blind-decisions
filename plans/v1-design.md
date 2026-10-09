@@ -122,6 +122,15 @@ This section fixes the analysis before any main-run outcome exists. Pilot receip
 - **Verdict.** A model is **order-blind** only if all four primary CIs lie inside their margins. It is **position-biased** if any CI lies entirely outside its margin. Otherwise it is **inconclusive**.
 - **Paired comparisons with Jev.** The same endpoints are reported as Decisions − Jev and Clef-flash − Jev, using the same item resamples.
 
+**Interim look (disclosed):**
+
+- **When:** on 2026-10-09 the main run was paused at Kyle's request to check that it was working. All three models were partway through **Factuality**, the first subset in plan order: Jev 299 items, Decisions 252, Clef-flash 137.
+- **What was checked:** request bodies were audited against the design, and the endpoints were computed on that partial data.
+- **What changed:** nothing in the design, endpoints, margins or verdict rule.
+- **One fix:** error messages no longer include request URLs, which had exposed a Cloudflare account ID in four unpublished receipts. Those four were redacted before publication.
+
+The final report uses the full run.
+
 **Secondary endpoints** are descriptive, with no verdict:
 
 - the same four endpoints in the question-ordering arm
