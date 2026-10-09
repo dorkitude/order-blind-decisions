@@ -144,6 +144,7 @@ func providers(names []string) ([]provider.Provider, error) {
 type runFlags struct {
 	providers []string
 	workers   int
+	workersBy map[string]int
 	budget    float64
 	live      bool
 }
@@ -151,6 +152,7 @@ type runFlags struct {
 func (f *runFlags) bind(cmd *cobra.Command) {
 	cmd.Flags().StringSliceVar(&f.providers, "providers", provider.Names, "providers to call")
 	cmd.Flags().IntVar(&f.workers, "workers", 4, "concurrent requests per provider")
+	cmd.Flags().StringToIntVar(&f.workersBy, "provider-workers", nil, "per-provider workers, e.g. clef-flash=16,jev=8")
 	cmd.Flags().Float64Var(&f.budget, "budget", 100, "project-wide spending cap in USD, across all runs")
 	cmd.Flags().BoolVar(&f.live, "live", false, "actually call the providers (paid)")
 }
@@ -165,7 +167,7 @@ func execute(ctx context.Context, f runFlags, run string, jobs []runner.Job) err
 		return err
 	}
 	sums, err := runner.Run(ctx, runner.Options{
-		Root: runsDir, Run: run, Workers: f.workers, BudgetUSD: f.budget,
+		Root: runsDir, Run: run, Workers: f.workers, WorkersBy: f.workersBy, BudgetUSD: f.budget,
 		MaxAttempts: 4, MaxConsecFail: 20, Log: os.Stdout, ProgressEvery: 500,
 	}, ps, jobs)
 	for _, s := range sums {

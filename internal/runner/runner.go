@@ -29,9 +29,10 @@ type Job struct {
 
 // Options configure a run.
 type Options struct {
-	Root            string // runs/ directory
-	Run             string // run name, e.g. "probe", "pilot", "main"
-	Workers         int    // concurrent requests per provider
+	Root            string         // runs/ directory
+	Run             string         // run name, e.g. "probe", "pilot", "main"
+	Workers         int            // concurrent requests per provider
+	WorkersBy       map[string]int // per-provider override of Workers
 	BudgetUSD       float64
 	MaxAttempts     int
 	MaxConsecFail   int // stop a provider after this many requests fail in a row
@@ -156,9 +157,14 @@ func runProvider(ctx context.Context, o Options, l *ledger, p provider.Provider,
 		mu.Unlock()
 		cancel()
 	}
+	workers := o.Workers
+	if n, ok := o.WorkersBy[p.Name()]; ok && n > 0 {
+		workers = n
+	}
+	fmt.Fprintf(o.Log, "%s: %d workers\n", p.Name(), workers)
 	queue := make(chan Job)
 	var wg sync.WaitGroup
-	for k := 0; k < o.Workers; k++ {
+	for k := 0; k < workers; k++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

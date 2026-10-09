@@ -47,6 +47,9 @@ CREATE TABLE rating_obs (run TEXT, provider TEXT, request_id TEXT, item TEXT, su
   refused INTEGER);
 CREATE INDEX choice_obs_run ON choice_obs (run, provider, arm, planted);
 CREATE INDEX rating_obs_run ON rating_obs (run, provider, format, arm, planted);
+CREATE INDEX choice_obs_pair ON choice_obs (run, provider, item, arm, ordering, planted, repeat);
+CREATE INDEX rating_obs_pair ON rating_obs (run, provider, item, format, arm, ordering, planted, code, repeat);
+CREATE INDEX rating_obs_code ON rating_obs (run, provider, format, item, code);
 `
 
 func slotOf(order []string, code string) int {

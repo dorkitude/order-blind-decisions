@@ -267,6 +267,9 @@ func Report(dbPath, run string) (string, error) {
 	if err := secondary(db, &b, run, present); err != nil {
 		return "", err
 	}
+	if err := refusals(db, &b, run, present); err != nil {
+		return "", err
+	}
 	if err := operations(db, &b, run, present); err != nil {
 		return "", err
 	}
@@ -471,6 +474,10 @@ func secondary(db *sql.DB, b *strings.Builder, run string, present []string) err
 			total++
 		}
 		e := Diff(g)
+		if e.Items == 0 {
+			w("| %s | no data | 0 |\n", label[p])
+			continue
+		}
 		w("| %s | %.1f%% [%.1f, %.1f] | %d |\n", label[p], 100*(e.Value+0.5), 100*(e.Lo+0.5), 100*(e.Hi+0.5), total)
 	}
 
@@ -550,6 +557,37 @@ func secondary(db *sql.DB, b *strings.Builder, run string, present []string) err
 	}
 	w("\n")
 	return nil
+}
+
+func refusals(db *sql.DB, b *strings.Builder, run string, present []string) error {
+	w := func(f string, a ...any) { fmt.Fprintf(b, f, a...) }
+	w("## Refusals\n\nRequests in which at least one question was answered with a refusal instead of a typed answer, by subset and format. Choice refusals count as not choosing the correct response; a refused rubric request has no ratings, so it drops out of the rubric endpoints for every slot at once.\n\n")
+	rows, err := db.Query(`SELECT a.provider, CASE WHEN i.kind='standard' THEN i.subset ELSE 'Ties ' || i.kind END, r.format,
+		count(DISTINCT a.request_id) FROM answers a JOIN requests r ON r.id=a.request_id JOIN items i ON i.key=r.item
+		WHERE a.run=? AND a.type='refusal' GROUP BY 1, 2, 3 ORDER BY 1, 2, 3`, run)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	any := false
+	w("| Model | Subset | Format | Requests with a refused question |\n|---|---|---|---|\n")
+	for rows.Next() {
+		var p, sub, f string
+		var n int
+		if err := rows.Scan(&p, &sub, &f, &n); err != nil {
+			return err
+		}
+		w("| %s | %s | %s | %d |\n", label[p], sub, f, n)
+		any = true
+	}
+	if !any {
+		w("| all | all | all | 0 |\n")
+	}
+	var partial, full int
+	db.QueryRow(`SELECT sum(s>0 AND s<n), sum(s>0 AND s=n) FROM (SELECT provider, item, sum(refused) s, count(*) n FROM choice_obs
+		WHERE run=? AND planted=0 GROUP BY provider, item)`, run).Scan(&partial, &full)
+	w("\nAcross all models, %d items were refused in only some of their choice orderings and %d in every ordering: whether a model refuses can itself depend on response order.\n\n", partial, full)
+	return rows.Err()
 }
 
 func operations(db *sql.DB, b *strings.Builder, run string, present []string) error {
