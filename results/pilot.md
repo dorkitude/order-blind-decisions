@@ -38,3 +38,13 @@ flowchart LR
 - **Cost.** Reported input tokens × list price; accounting estimates, not invoices.
 
 **Projection.** Scaling $0.51 for 35 items to all 1,865 items gives about $27 for the main run. Together with the probe and pilot, that is well inside the $100 cap.
+
+## Addendum: Microsoft-Decision-1 (2026-10-09)
+
+Microsoft-Decision-1 was added after the plan was frozen and ran the same 35-item pilot through OpenRouter before its full run.
+
+| Model | Calls ok | Invalid answers | Refusals | Response model | Latency p50 / p95 | Cost |
+|---|---|---|---|---|---|---|
+| Microsoft-Decision-1 | 1,400 / 1,400 | 0 | 0 | `microsoft/microsoft-decision-1-20261009` | 304 / 409 ms | $0.0790 |
+
+One call was rate-limited (HTTP 429) and succeeded on retry. Receipts are in `runs/pilot/msd1/`.

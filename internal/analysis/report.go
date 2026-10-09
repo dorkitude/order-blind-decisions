@@ -18,9 +18,9 @@ const (
 )
 
 // Providers in report order; Jev is the reference.
-var Providers = []string{"jev", "decisions", "clef-flash"}
+var Providers = []string{"jev", "decisions", "clef-flash", "msd1"}
 
-var label = map[string]string{"jev": "Jev", "decisions": "OpenAI Decisions", "clef-flash": "Clef-flash"}
+var label = map[string]string{"jev": "Jev", "decisions": "OpenAI Decisions", "clef-flash": "Clef-flash", "msd1": "Microsoft-Decision-1"}
 
 type endpoint struct {
 	ID, Name, Unit string
@@ -319,9 +319,9 @@ func curves(db *sql.DB, b *strings.Builder, run string, present []string) error 
 		rows.Close()
 		acc[p], rat[p] = a, r
 	}
-	palette := []string{"#2f6fdf", "#d9480f", "#2b8a3e"}
+	palette := []string{"#2f6fdf", "#d9480f", "#2b8a3e", "#7048e8"}
 	colors := strings.Join(palette[:len(present)], ", ")
-	colorNames := []string{"blue", "orange", "green"}
+	colorNames := []string{"blue", "orange", "green", "purple"}
 	var names []string
 	for i, p := range present {
 		names = append(names, label[p]+" "+colorNames[i])
@@ -563,9 +563,21 @@ func operations(db *sql.DB, b *strings.Builder, run string, present []string) er
 		}
 		w("| %s | %d | %d | %d | %d | %d | $%.2f | $%.2f | %.0f / %.0f ms |\n", label[p], ok, att, limited, refused, tok, cost, guard, 1000*p50, 1000*p95)
 	}
-	w("\n- **Cost** prices the input tokens each provider reported for successful calls at list price ($0.042/M Jev, $0.10/M Decisions, $0.09/M Clef-flash). These are accounting estimates, not invoices.\n")
+	w("\n- **Cost** prices the input tokens each provider reported for successful calls at list price ($0.042/M Jev, $0.10/M Decisions, $0.09/M Clef-flash, $0.042/M Microsoft-Decision-1). These are accounting estimates, not invoices.\n")
 	w("- **Budget-guard tally** is what the run's spending cap counted. It also charges every rejected or failed call that came back without usage at its estimated size, so it deliberately overstates spend.\n")
-	w("- **Rate limits.** Only Cloudflare rate-limited (HTTP 429, *\"inference request per min rate reached\"*). At 16 concurrent requests Clef-flash sustained about 1,360 successful calls per minute. Cloudflare's published Workers AI limits list Clef-flash's task type (Text Generation) at 300 requests per minute and give no figure for Clef, so the real limit was found empirically. Every rate-limited call was retried until it succeeded.\n")
+	var limitedNames []string
+	for _, p := range present {
+		var n int
+		db.QueryRow(`SELECT count(*) FROM receipts WHERE run=? AND provider=? AND status=429`, run, p).Scan(&n)
+		if n > 0 {
+			limitedNames = append(limitedNames, fmt.Sprintf("%s (%d)", label[p], n))
+		}
+	}
+	if len(limitedNames) == 0 {
+		limitedNames = []string{"none"}
+	}
+	w("- **Rate limits.** Calls answered with HTTP 429: %s. Every rate-limited call was retried until it succeeded.", strings.Join(limitedNames, ", "))
+	w(" For Clef-flash, Cloudflare's message was *\"inference request per min rate reached\"*: at 16 concurrent requests it sustained about 1,360 successful calls per minute, while Cloudflare's published Workers AI limits list Clef-flash's task type (Text Generation) at 300 requests per minute and give no figure for Clef, so the real limit was found empirically.\n")
 	w("- **Latency** is measured HTTP round trips at 4–16 concurrent requests per model, not intrinsic model speed.\n\n")
 	return nil
 }

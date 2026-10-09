@@ -14,4 +14,4 @@ This repository's original code and documentation are [MIT licensed](LICENSE). T
 | RewardBench judge prompts | [`allenai/reward-bench`](https://github.com/allenai/reward-bench), `rewardbench/generative_v2.py` | Apache-2.0 | The four-way and ratings prompts are adapted; every change is listed in [`docs/prompts.md`](docs/prompts.md). |
 | OpenAI Decisions adapter | [`dorkitude/decision-model-testing`](https://github.com/dorkitude/decision-model-testing), `experiments/openai-decisions-adapter` | MIT (same author) | Imported as a Go module to translate Jev-shaped requests to the Decisions API. |
 | Background papers | See [`sources/README.md`](sources/README.md) | Per paper | Only CC-licensed PDFs are committed. arXiv-default-license PDFs are fetched locally by `sources/fetch.sh`. |
-| Model outputs | Jev, OpenAI Decisions, Cloudflare Clef-flash | Each provider's terms | Responses are recorded in `runs/` for reproducibility. |
+| Model outputs | Jev, OpenAI Decisions, Cloudflare Clef-flash, Microsoft-Decision-1 (via OpenRouter) | Each provider's terms | Responses are recorded in `runs/` for reproducibility. |

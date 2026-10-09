@@ -37,6 +37,7 @@ All are publishable; this repository is public.
 | Jev `jev-1.13.0` | reference and baseline | `POST https://typesafe.int.exe.xyz/v1/systemone` (exe.dev integration) | $0.042/M |
 | OpenAI Decisions `gpt-6-luna` | compared with Jev | `POST https://openai.int.exe.xyz/v1/decisions` (exe.dev integration), Jev body translated by the provider-openai-decisions adapter | $0.10/M (placeholder until OpenAI publishes) |
 | Cloudflare Clef-flash `clef-flash` | compared with Jev | `POST https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/cloudflare/clef-flash`, bearer `CLOUDFLARE_API_TOKEN`, Jev-compatible body | $0.09/M |
+| Microsoft-Decision-1 `microsoft/microsoft-decision-1` | compared with Jev (added after the freeze) | `POST https://openrouter.int.exe.xyz/api/alpha/decisions` (exe.dev OpenRouter integration), Jev-compatible body and response | $0.042/M |
 
 Full Clef (27B) is out of scope on cost. Public docs describe Clef-flash and Decisions as "Jev-compatible decision models."
 
@@ -121,6 +122,13 @@ This section fixes the analysis before any main-run outcome exists. Pilot receip
 - **Refusals.** For choice accuracy, a refusal or invalid answer counts as not choosing the correct response. Refusals are also reported separately.
 - **Verdict.** A model is **order-blind** only if all four primary CIs lie inside their margins. It is **position-biased** if any CI lies entirely outside its margin. Otherwise it is **inconclusive**.
 - **Paired comparisons with Jev.** The same endpoints are reported as Decisions − Jev and Clef-flash − Jev, using the same item resamples.
+
+**Provider added after the freeze (disclosed):**
+
+- **What and when:** Microsoft-Decision-1 was announced on 2026-10-09 and appeared on OpenRouter's decisions API the same evening. It was added as a fourth model after the v1 main run had finished.
+- **What it got:** the identical frozen plan (`frozen/v1`, unchanged hashes), the same endpoints, margins, bootstrap and verdict rule.
+- **Gates:** it passed the same truncation probe and pilot gates before its full run.
+- **Order:** nothing in the design was changed for it. Its results were computed after the other three models' results were already published.
 
 **Interim look (disclosed):**
 

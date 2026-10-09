@@ -6,6 +6,8 @@
 //   - decisions: OpenAI's Decisions API through the exe.dev "openai"
 //     integration; the public decision-model-testing adapter translates the
 //     body and normalizes the answer back to Jev's shape.
+//   - msd1: Microsoft-Decision-1 through OpenRouter's decisions API
+//     (exe.dev "openrouter" integration; Jev-shaped request and response).
 //   - clef-flash: Cloudflare Workers AI, which accepts Jev's body directly and
 //     wraps the answer in {"result": …, "success": …}. Needs
 //     CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN in the environment.
@@ -55,7 +57,7 @@ type Provider interface {
 }
 
 // Names lists the providers in study order; Jev is the reference.
-var Names = []string{"jev", "decisions", "clef-flash"}
+var Names = []string{"jev", "decisions", "clef-flash", "msd1"}
 
 // New returns the named provider.
 func New(name string) (Provider, error) {
@@ -64,6 +66,8 @@ func New(name string) (Provider, error) {
 		return jev{url: "https://typesafe.int.exe.xyz/v1/systemone", model: "jev-1.13.0"}, nil
 	case "decisions":
 		return openai{c: decisions.Client{Endpoint: "https://openai.int.exe.xyz/v1/decisions", Model: decisions.DefaultModel}}, nil
+	case "msd1":
+		return msd1{url: "https://openrouter.int.exe.xyz/api/alpha/decisions", model: "microsoft/microsoft-decision-1"}, nil
 	case "clef-flash":
 		acct, tok := os.Getenv("CLOUDFLARE_ACCOUNT_ID"), os.Getenv("CLOUDFLARE_API_TOKEN")
 		if acct == "" || tok == "" {
@@ -140,6 +144,22 @@ func (p jev) Name() string             { return "jev" }
 func (p jev) BodyModel() string        { return p.model }
 func (p jev) USDPerMTokInput() float64 { return 0.042 }
 func (p jev) Do(ctx context.Context, body []byte) (Result, error) {
+	r, err := post(ctx, p.url, "", body)
+	if err == nil && r.Status == http.StatusOK {
+		fill(&r, r.Raw)
+	}
+	return r, err
+}
+
+// msd1 is Microsoft-Decision-1 through OpenRouter's decisions API, via the
+// exe.dev "openrouter" integration (it injects the key). The API takes and
+// returns Jev-shaped bodies, so only the model name changes.
+type msd1 struct{ url, model string }
+
+func (p msd1) Name() string             { return "msd1" }
+func (p msd1) BodyModel() string        { return p.model }
+func (p msd1) USDPerMTokInput() float64 { return 0.042 }
+func (p msd1) Do(ctx context.Context, body []byte) (Result, error) {
 	r, err := post(ctx, p.url, "", body)
 	if err == nil && r.Status == http.StatusOK {
 		fill(&r, r.Raw)

@@ -50,3 +50,7 @@ Needles found (of 2), with reported input tokens in brackets:
 
 - **Easy task.** The needle is unambiguous; this shows the text is *read*, not that it is weighed equally.
 - **Byte size is a proxy.** Request size is compared in bytes; dense text such as code could tokenize larger. v1's largest request is about a quarter smaller than the largest probe request.
+
+## Addendum: Microsoft-Decision-1 (2026-10-09)
+
+Microsoft-Decision-1 was added after the plan was frozen and ran the same 28 probe requests through OpenRouter before its pilot. **It found every needle at both start and end at every length**, with reported input tokens growing linearly from 729 (target 500) to 9,621 (target 8,000). Cost: $0.005. Receipts are in `runs/probe/msd1/`.

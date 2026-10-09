@@ -122,7 +122,7 @@ func estimate(bytes float64) {
 	fmt.Printf("estimated input tokens per provider: %.1fM (at 4 bytes/token; rough)\n", tok/1e6)
 	sum := 0.0
 	for _, name := range provider.Names {
-		price := map[string]float64{"jev": 0.042, "decisions": 0.10, "clef-flash": 0.09}[name]
+		price := map[string]float64{"jev": 0.042, "decisions": 0.10, "clef-flash": 0.09, "msd1": 0.042}[name]
 		fmt.Printf("  %-11s ~$%.2f\n", name, tok*price/1e6)
 		sum += tok * price / 1e6
 	}
