@@ -1,7 +1,7 @@
 ---
 title: order-blind-decisions v1 design
 type: plan
-status: frozen 2026-10-09 (frozen/v1 and the confirmatory analysis pushed before the main run)
+status: complete 2026-10-09 (frozen before the main run; results in results/analysis.md)
 created: 2026-10-09
 updated: 2026-10-09
 author: Kyle Wild
