@@ -35,6 +35,36 @@ flowchart LR
     M -->|straddles| I[inconclusive]
 ```
 
+## Background: the serial-position curve
+
+In 1962 Bennet Murdock read people lists of words and asked them to recall as many as they could, in any order ([Murdock 1962](https://doi.org/10.1037/h0045106)). Recall by list position traced a **U-shaped curve**:
+
+- **Primacy:** the first few words were remembered better than the middle.
+- **Recency:** the last few were remembered best of all.
+- **The middle** was a flat trough.
+
+```mermaid
+%%{init: {"themeVariables": {"xyChart": {"plotColorPalette": "#2f6fdf"}}}}%%
+xychart-beta
+    title "Serial-position curve (schematic, shape after Murdock 1962)"
+    x-axis "Position in list" [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    y-axis "Chance of recall" 0 --> 1
+    line [0.45, 0.35, 0.28, 0.24, 0.21, 0.20, 0.20, 0.19, 0.19, 0.19, 0.19, 0.19, 0.20, 0.20, 0.21, 0.24, 0.31, 0.45, 0.65, 0.85]
+```
+
+*Schematic only: the values illustrate the curve's shape and are not Murdock's measurements.*
+
+Language models show the same U. *Lost in the Middle* (Liu et al. 2023) found that models use evidence at the start or end of a long context better than evidence in the middle. LLM judges likewise favor responses by slot rather than by quality. [`sources/`](sources/README.md) collects that literature.
+
+This study asks whether decision models trace the U or a flat line. With four responses per request, slot 1 is the primacy end and slot 4 the recency end:
+
+| Curve | What it would mean here |
+|---|---|
+| Flat | Order-blind: a response is judged the same in any slot |
+| Raised at slot 1 | Primacy: the first response is favored |
+| Raised at slot 4 | Recency: the last response is favored |
+| U-shaped | Both, as in Murdock's lists |
+
 ## Status
 
 The design is settled; the harness is being built. Nothing has run yet beyond response-shape smoke tests.

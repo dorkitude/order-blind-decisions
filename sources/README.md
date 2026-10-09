@@ -8,11 +8,11 @@ tags: [primacy, recency, serial-position, position-bias, llm-as-judge]
 
 # Sources on primacy, recency and position bias in LLMs
 
-Prior work this experiment builds on. Every paper is pinned to an arXiv version and checked against [`SHA256SUMS`](SHA256SUMS). Run [`fetch.sh`](fetch.sh) to download anything missing and verify all hashes.
+Prior work this experiment builds on. Every language-model paper is pinned to an arXiv version and checked against [`SHA256SUMS`](SHA256SUMS). Run [`fetch.sh`](fetch.sh) to download anything missing and verify all hashes. Murdock (1962) is cited by DOI only, because no openly licensed copy exists.
 
 ```mermaid
 flowchart LR
-    H[Human serial-position effect<br/>primacy + recency] --> M[LLM memory analogues<br/>Janik · Guo · Salvatore]
+    H[Human serial-position effect<br/>Murdock 1962: primacy + recency] --> M[LLM memory analogues<br/>Janik · Guo · Salvatore]
     M --> C[Long context<br/>Lost in the Middle · Found in the Middle]
     M --> P[Prompt and option order<br/>Zhao · Lu · Wang · Pezeshkpour · Zheng C.]
     P --> J[LLM-as-judge position bias<br/>Wang P. · Zheng L. · Koo · Li · Shi]
@@ -26,6 +26,14 @@ flowchart LR
 The public repository commits only PDFs whose license allows redistribution: CC BY, CC BY-SA, and verbatim non-commercial copies under CC BY-NC-SA or CC BY-NC-ND. Papers under arXiv's default license (`nonexclusive-distrib/1.0`) grant distribution rights to arXiv only. Those PDFs are listed in [`.gitignore`](.gitignore) and fetched locally by `fetch.sh`.
 
 ## Papers
+
+### The original serial-position curve
+
+| Paper | Source | License | Committed | Why it matters here |
+|---|---|---|---|---|
+| Murdock 1962, *The Serial Position Effect of Free Recall*, Journal of Experimental Psychology 64(5), 482–488 | [doi:10.1037/h0045106](https://doi.org/10.1037/h0045106) | APA copyright | no; no open copy exists | The classic result every paper below echoes. People recall the first few items of a list (primacy) and especially the last few (recency) far better than the middle, producing a U-shaped curve. `fetch.sh` cannot download it; save a library copy locally as `1962-murdock-serial-position-free-recall.pdf`, which is gitignored. |
+
+### Language-model papers
 
 | Paper | arXiv | License | Committed | Why it matters here |
 |---|---|---|---|---|
