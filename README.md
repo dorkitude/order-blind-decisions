@@ -1,7 +1,7 @@
 ---
 title: Order-blind decisions
 type: repository-index
-status: harness in development; no results yet
+status: harness built, truncation probe passed; pilot next
 created: 2026-10-09
 author: Kyle Wild
 tags: [primacy, recency, position-bias, decision-models, llm-as-judge]
@@ -67,10 +67,10 @@ This study asks whether decision models trace the U or a flat line. With four re
 
 ## Status
 
-The design is settled; the harness is being built. Nothing has run yet beyond response-shape smoke tests.
+The design is settled and the Go harness works. The [truncation probe](results/truncation-probe.md) passed: all three models read request state in full up to about 9,700 tokens, beyond v1's largest request. The pilot is next, then the frozen plan is pushed, then the full run.
 
 - **Design:** [`plans/v1-design.md`](plans/v1-design.md). A wide-K follow-up (K = 8, 16, 32 on PPE Best-of-K) is in [`plans/wide-k-followup.md`](plans/wide-k-followup.md).
-- **Method and reproduction:** [`docs/`](docs/), added as the harness lands.
+- **Method and reproduction:** [`docs/prompts.md`](docs/prompts.md) lists every change from RewardBench 2's prompts; [`docs/reproduce.md`](docs/reproduce.md) has the commands.
 - **Results:** [`results/`](results/), empty until runs complete.
 
 ## Repository layout
@@ -82,6 +82,7 @@ The design is settled; the harness is being built. Nothing has run yet beyond re
 | [`sources/`](sources/README.md) | background papers on primacy, recency and position bias |
 | `runs/` | append-only JSONL receipts of every API call, committed as they happen |
 | `db/` | SQLite rebuilt from `runs/` for analysis (not committed) |
+| `frozen/v1/` | the frozen plan: selected items, every request and its body hash |
 | `results/` | generated reports |
 
 By **Kyle Wild**. Code is [MIT licensed](LICENSE); data, prompts and papers keep their [upstream terms](THIRD_PARTY_NOTICES.md).
