@@ -1,0 +1,8 @@
+# Analysis database: rebuilt from runs/ by `order-blind import`; never committed.
+db/*.sqlite
+db/*.sqlite-*
+# Downloaded upstream dataset; `order-blind fetch` re-downloads and verifies it.
+data/upstream/
+# Local build output.
+/bin/
+/order-blind
