@@ -14,6 +14,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/dorkitude/order-blind-decisions/internal/analysis"
 	"github.com/dorkitude/order-blind-decisions/internal/answer"
 	"github.com/dorkitude/order-blind-decisions/internal/dataset"
 	"github.com/dorkitude/order-blind-decisions/internal/design"
@@ -22,12 +23,14 @@ import (
 	"github.com/dorkitude/order-blind-decisions/internal/provider"
 	"github.com/dorkitude/order-blind-decisions/internal/runlog"
 	"github.com/dorkitude/order-blind-decisions/internal/runner"
+	"github.com/dorkitude/order-blind-decisions/internal/store"
 )
 
 const (
 	dataDir   = "data"
 	frozenDir = "frozen/v1"
 	runsDir   = "runs"
+	dbPath    = "db/order-blind.sqlite"
 )
 
 func main() {
@@ -37,7 +40,7 @@ func main() {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
-	root.AddCommand(fetchCmd(), planCmd(), probeCmd(), runCmd(), statusCmd())
+	root.AddCommand(fetchCmd(), planCmd(), probeCmd(), runCmd(), statusCmd(), importCmd(), reportCmd())
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	if err := root.ExecuteContext(ctx); err != nil {
@@ -336,4 +339,48 @@ func statusCmd() *cobra.Command {
 			return nil
 		},
 	}
+}
+
+func importCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "import",
+		Short: "Rebuild db/order-blind.sqlite from frozen/v1 and every receipt in runs/",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			counts, err := store.Import(dbPath, frozenDir, runsDir)
+			if err != nil {
+				return err
+			}
+			for _, t := range []string{"items", "requests", "receipts", "answers", "choice_obs", "rating_obs"} {
+				fmt.Printf("%-11s %8d rows\n", t, counts[t])
+			}
+			fmt.Printf("wrote %s\n", dbPath)
+			return nil
+		},
+	}
+}
+
+func reportCmd() *cobra.Command {
+	var run, out string
+	cmd := &cobra.Command{
+		Use:   "report",
+		Short: "Compute the preregistered endpoints and write a Markdown report",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			md, err := analysis.Report(dbPath, run)
+			if err != nil {
+				return err
+			}
+			if out == "-" {
+				fmt.Print(md)
+				return nil
+			}
+			if err := os.WriteFile(out, []byte(md), 0o644); err != nil {
+				return err
+			}
+			fmt.Printf("wrote %s\n", out)
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&run, "run", "main", "run to report")
+	cmd.Flags().StringVar(&out, "out", "results/main-report.md", "output path, or - for stdout")
+	return cmd
 }
