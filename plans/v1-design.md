@@ -1,7 +1,7 @@
 ---
 title: order-blind-decisions v1 design
 type: plan
-status: draft (design questions mostly settled; not yet frozen)
+status: frozen 2026-10-09 (frozen/v1 and the confirmatory analysis pushed before the main run)
 created: 2026-10-09
 updated: 2026-10-09
 author: Kyle Wild
@@ -100,6 +100,38 @@ Every metric is computed per model and as a paired difference from Jev on the sa
 | entirely inside | order-blind |
 | entirely outside | position-biased |
 | straddles the margin | inconclusive |
+
+### Confirmatory analysis (frozen 2026-10-09, before the main run)
+
+This section fixes the analysis before any main-run outcome exists. Pilot receipts (`runs/pilot/`) are excluded.
+
+**Primary endpoints:** the haystack arm, per model. "Middle" means slots 2 and 3 pooled.
+
+| # | Endpoint | Items | Definition | Margin |
+|---|---|---|---|---|
+| P1 | Choice primacy | `standard` + `ref` (exactly one correct) | P(correct chosen \| correct in slot 1) − P(correct chosen \| correct in middle) | ±3 pp |
+| P2 | Choice recency | same | P(correct chosen \| slot 4) − P(correct chosen \| middle) | ±3 pp |
+| P3 | Rubric primacy | all items | Mean rating (expected level + 1) of a response in slot 1 minus its mean in the middle, averaged over responses | ±0.25 |
+| P4 | Rubric recency | all items | Same, slot 4 minus middle | ±0.25 |
+
+**Statistics:**
+
+- **Pooling.** Both repeats and all four orderings are pooled; each item contributes every slot (Williams square).
+- **Intervals.** 90% CIs come from a cluster bootstrap over items: 10,000 resamples, seed `20261009`, percentile intervals.
+- **Refusals.** For choice accuracy, a refusal or invalid answer counts as not choosing the correct response. Refusals are also reported separately.
+- **Verdict.** A model is **order-blind** only if all four primary CIs lie inside their margins. It is **position-biased** if any CI lies entirely outside its margin. Otherwise it is **inconclusive**.
+- **Paired comparisons with Jev.** The same endpoints are reported as Decisions − Jev and Clef-flash − Jev, using the same item resamples.
+
+**Secondary endpoints** are descriptive, with no verdict:
+
+- the same four endpoints in the question-ordering arm
+- selection rate by slot
+- position consistency: the same winner across the four orderings within a repeat
+- repetition stability: repeat 1 vs repeat 2 agreement
+- packed minus solo rating by slot
+- Ties `tied`: how often the earlier-placed of the two correct responses wins, against 50%; also compared with the matched `ref` prompt
+- planted-bias arm: P1 and P3 with the planted sentence, minus the same items without it (the sensitivity check)
+- results by subset
 
 ## Budget and run gates
 
