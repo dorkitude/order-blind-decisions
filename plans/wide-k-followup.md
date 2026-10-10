@@ -1,14 +1,16 @@
 ---
 title: Wide-K follow-up (K = 4, 8, 16, 32)
 type: plan
-status: deferred until v1 results are in
+status: superseded by mmlu-pro-wide-k.md (2026-10-10)
 created: 2026-10-09
 author: Kyle Wild
 tags: [primacy, recency, serial-position, ppe, best-of-k]
-related: [v1-design.md]
+related: [v1-design.md, mmlu-pro-wide-k.md]
 ---
 
 # Wide-K follow-up (K = 4, 8, 16, 32)
+
+> **Superseded.** The study being built is [mmlu-pro-wide-k.md](mmlu-pro-wide-k.md): MMLU-Pro only, with the four v1 models.
 
 v1 runs at K = 4. This follow-up extends the test to K = 8, 16 and 32 if v1 shows it's worth it. Primacy and recency in LLMs usually grow with list length.
 
