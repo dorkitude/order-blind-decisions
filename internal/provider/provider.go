@@ -1,4 +1,4 @@
-// Package provider sends Jev-shaped request bodies to the three decision
+// Package provider sends Jev-shaped request bodies to the decision
 // models and returns raw and Jev-shaped responses.
 //
 //   - jev: Jev's SystemOne API through the exe.dev "typesafe" integration,
@@ -8,6 +8,9 @@
 //     body and normalizes the answer back to Jev's shape.
 //   - msd1: Microsoft-Decision-1 through OpenRouter's decisions API
 //     (exe.dev "openrouter" integration; Jev-shaped request and response).
+//   - subq: SubQ Snap through SubQ's System One API (Jev-shaped request and
+//     response). The exe.dev integration is the default; a direct route reads
+//     SUBQ_API_KEY from the environment only.
 //   - clef-flash: Cloudflare Workers AI, which accepts Jev's body directly and
 //     wraps the answer in {"result": …, "success": …}. Needs
 //     CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN in the environment.
@@ -26,6 +29,7 @@ import (
 	neturl "net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dorkitude/decision-model-testing/experiments/openai-decisions-adapter/decisions"
@@ -57,7 +61,14 @@ type Provider interface {
 }
 
 // Names lists the providers in study order; Jev is the reference.
-var Names = []string{"jev", "decisions", "clef-flash", "msd1"}
+var Names = []string{"jev", "decisions", "clef-flash", "msd1", "subq"}
+
+const (
+	subqIntegrationURL = "https://subq.int.exe.xyz/v1/systemone"
+	subqDirectURL      = "https://api.subq.ai/v1/systemone"
+	subqModel          = "subq-snap-preview"
+	subqPlaceholderUSD = 1.0
+)
 
 // New returns the named provider.
 func New(name string) (Provider, error) {
@@ -68,6 +79,27 @@ func New(name string) (Provider, error) {
 		return openai{c: decisions.Client{Endpoint: "https://openai.int.exe.xyz/v1/decisions", Model: decisions.DefaultModel}}, nil
 	case "msd1":
 		return msd1{url: "https://openrouter.int.exe.xyz/api/alpha/decisions", model: "microsoft/microsoft-decision-1"}, nil
+	case "subq":
+		url := strings.TrimSpace(os.Getenv("SUBQ_URL"))
+		if url == "" {
+			url = subqIntegrationURL
+		}
+		token := ""
+		if url != subqIntegrationURL {
+			token = strings.TrimSpace(os.Getenv("SUBQ_API_KEY"))
+			if token == "" {
+				return nil, fmt.Errorf("SUBQ_API_KEY is required for the direct SubQ route")
+			}
+		}
+		rate := subqPlaceholderUSD
+		if raw := strings.TrimSpace(os.Getenv("SUBQ_USD_PER_MTOK_INPUT")); raw != "" {
+			v, err := strconv.ParseFloat(raw, 64)
+			if err != nil || v <= 0 {
+				return nil, fmt.Errorf("SUBQ_USD_PER_MTOK_INPUT must be positive, got %q", raw)
+			}
+			rate = v
+		}
+		return subq{url: url, token: token, model: subqModel, usdPerMTokInput: rate}, nil
 	case "clef-flash":
 		acct, tok := os.Getenv("CLOUDFLARE_ACCOUNT_ID"), os.Getenv("CLOUDFLARE_API_TOKEN")
 		if acct == "" || tok == "" {
@@ -163,6 +195,29 @@ func (p msd1) Do(ctx context.Context, body []byte) (Result, error) {
 	r, err := post(ctx, p.url, "", body)
 	if err == nil && r.Status == http.StatusOK {
 		fill(&r, r.Raw)
+	}
+	return r, err
+}
+
+// subq is SubQ Snap's Jev-compatible System One endpoint. Pricing was not
+// published when this provider was added, so accounting defaults to a clearly
+// documented placeholder that can be overridden for a run.
+type subq struct {
+	url, token, model string
+	usdPerMTokInput   float64
+}
+
+func (p subq) Name() string             { return "subq" }
+func (p subq) BodyModel() string        { return p.model }
+func (p subq) USDPerMTokInput() float64 { return p.usdPerMTokInput }
+func (p subq) Do(ctx context.Context, body []byte) (Result, error) {
+	r, err := post(ctx, p.url, p.token, body)
+	if err == nil && r.Status == http.StatusOK {
+		fill(&r, r.Raw)
+		if r.ParseError == "" && r.ResponseModel != p.model {
+			r.ParseError = fmt.Sprintf("unexpected model %q", r.ResponseModel)
+			r.Normalized = nil
+		}
 	}
 	return r, err
 }

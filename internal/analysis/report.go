@@ -18,9 +18,9 @@ const (
 )
 
 // Providers in report order; Jev is the reference.
-var Providers = []string{"jev", "decisions", "clef-flash", "msd1"}
+var Providers = []string{"jev", "decisions", "clef-flash", "msd1", "subq"}
 
-var label = map[string]string{"jev": "Jev", "decisions": "OpenAI Decisions", "clef-flash": "Clef-flash", "msd1": "Microsoft-Decision-1"}
+var label = map[string]string{"jev": "Jev", "decisions": "OpenAI Decisions", "clef-flash": "Clef-flash", "msd1": "Microsoft-Decision-1", "subq": "SubQ Snap"}
 
 type endpoint struct {
 	ID, Name, Unit string

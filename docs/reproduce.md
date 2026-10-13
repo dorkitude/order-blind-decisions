@@ -41,5 +41,18 @@ go build -o order-blind .
 | OpenAI Decisions | `https://openai.int.exe.xyz/v1/decisions` | an exe.dev `openai` integration |
 | Clef-flash | Cloudflare Workers AI REST API | `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` (Workers AI Read is enough) |
 | Microsoft-Decision-1 (`msd1`) | OpenRouter decisions API, `https://openrouter.int.exe.xyz/api/alpha/decisions` | an exe.dev `openrouter` integration (injects the key); off exe.dev, `https://openrouter.ai/api/alpha/decisions` with an OpenRouter key |
+| SubQ Snap (`subq`) | `https://subq.int.exe.xyz/v1/systemone` | an exe.dev `subq` integration; off exe.dev, set `SUBQ_URL=https://api.subq.ai/v1/systemone` and `SUBQ_API_KEY` in the environment |
 
 Off exe.dev, point the provider URLs in [`internal/provider/provider.go`](../internal/provider/provider.go) at the direct APIs and supply keys.
+
+SubQ had not published pricing when checked on 2026-10-13. Its receipts therefore use an explicit `$1/Mtok` accounting placeholder unless `SUBQ_USD_PER_MTOK_INPUT` is set; this is neither a list price nor an invoice. The main run uses the unchanged public RewardBench 2 plan. SubQ's documented default is indefinite prompt/completion retention, so do not reuse this route for private data without confirming the account policy.
+
+The post-freeze SubQ extension was run sequentially through the same gates:
+
+```bash
+export SUBQ_URL=https://api.subq.ai/v1/systemone
+export SUBQ_API_KEY=... # environment only; never committed
+./order-blind probe --providers subq --provider-workers subq=4 --budget 250 --live
+./order-blind run --run pilot --pilot-per-kind 5 --providers subq --provider-workers subq=4 --budget 250 --live
+./order-blind run --run main --providers subq --provider-workers subq=4 --budget 250 --live
+```

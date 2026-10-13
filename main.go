@@ -1,6 +1,6 @@
 // Command order-blind runs the order-blind-decisions study: it fetches
 // RewardBench 2, freezes the request plan, probes provider limits, and sends
-// planned requests to Jev, OpenAI Decisions and Cloudflare Clef-flash.
+// planned requests to supported decision models.
 package main
 
 import (
@@ -122,7 +122,7 @@ func estimate(bytes float64) {
 	fmt.Printf("estimated input tokens per provider: %.1fM (at 4 bytes/token; rough)\n", tok/1e6)
 	sum := 0.0
 	for _, name := range provider.Names {
-		price := map[string]float64{"jev": 0.042, "decisions": 0.10, "clef-flash": 0.09, "msd1": 0.042}[name]
+		price := map[string]float64{"jev": 0.042, "decisions": 0.10, "clef-flash": 0.09, "msd1": 0.042, "subq": 1.00}[name]
 		fmt.Printf("  %-11s ~$%.2f\n", name, tok*price/1e6)
 		sum += tok * price / 1e6
 	}
