@@ -38,7 +38,7 @@ All are publishable; this repository is public.
 | OpenAI Decisions `gpt-6-luna` | compared with Jev | `POST https://openai.int.exe.xyz/v1/decisions` (exe.dev integration), Jev body translated by the provider-openai-decisions adapter | $0.10/M |
 | Cloudflare Clef-flash `clef-flash` | compared with Jev | `POST https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/cloudflare/clef-flash`, bearer `CLOUDFLARE_API_TOKEN`, Jev-compatible body | $0.09/M |
 | Microsoft-Decision-1 `microsoft/microsoft-decision-1` | compared with Jev | `POST https://openrouter.int.exe.xyz/api/alpha/decisions` (exe.dev OpenRouter integration), Jev-compatible body and response | $0.042/M |
-| SubQ Snap `subq-snap-preview` | compared with Jev | `POST https://api.subq.ai/v1/systemone`, Jev-compatible body and response | $0.05/M input; output free |
+| SubQ Snap `subq-snap-preview` | compared with Jev | `POST https://api.subq.ai/v1/systemone`, Jev-compatible body and response | [$0.05/M input; output free](https://docs.subq.ai/using-the-api/models/) |
 
 Full Clef (27B) is out of scope on cost. Public docs describe Clef-flash and Decisions as "Jev-compatible decision models."
 
