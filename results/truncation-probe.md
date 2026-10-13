@@ -5,11 +5,12 @@ run: probe
 date: 2026-10-09
 receipts: runs/probe/
 cost_usd: 0.0263
+updated: 2026-10-13 (SubQ addendum)
 ---
 
 # Truncation probe
 
-**Result: none of the three models truncated the request state at any tested length, up to about 9,700 input tokens.** The largest v1 request (24.3 KB) is smaller than the largest probe request (about 32 KB of state), so v1 requests are read in full.
+**Result: none of the five models truncated the request state at any tested length, up to about 9,700 input tokens.** The largest v1 request (24.3 KB) is smaller than the largest probe request (about 32 KB of state), so v1 requests are read in full.
 
 ## Why it was run
 
@@ -54,3 +55,7 @@ Needles found (of 2), with reported input tokens in brackets:
 ## Addendum: Microsoft-Decision-1 (2026-10-09)
 
 Microsoft-Decision-1 was added after the plan was frozen and ran the same 28 probe requests through OpenRouter before its pilot. **It found every needle at both start and end at every length**, with reported input tokens growing linearly from 729 (target 500) to 9,621 (target 8,000). Cost: $0.005. Receipts are in `runs/probe/msd1/`.
+
+## Addendum: SubQ Snap (2026-10-13)
+
+SubQ Snap ran the same 28 requests before its pilot. **It found every start and end needle at every length**, with reported input tokens growing from about 795 at target 500 to 9,687 at target 8,000. All calls succeeded on the first attempt; latency was 285 / 356 ms p50 / p95. Its $0.1217 accounting cost uses the disclosed `$1/Mtok` placeholder because SubQ's price was unpublished, not a list price or invoice. Receipts are in `runs/probe/subq/`.

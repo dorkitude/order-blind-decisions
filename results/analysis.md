@@ -3,7 +3,7 @@ title: "Analysis: are decision models order-blind?"
 type: analysis
 run: main
 date: 2026-10-09
-updated: 2026-10-09 (Microsoft-Decision-1 added)
+updated: 2026-10-13 (SubQ Snap added)
 author: Kyle Wild
 data: results/main-report.md (generated), runs/main/ (receipts)
 tags: [primacy, recency, serial-position, decision-models, rewardbench-2]
@@ -11,14 +11,16 @@ tags: [primacy, recency, serial-position, decision-models, rewardbench-2]
 
 # Analysis: are decision models order-blind?
 
-**Short answer:** Jev is, on the preregistered test. OpenAI Decisions is not: it favors whatever comes first. Microsoft-Decision-1 is not either: it disfavors whatever comes last. Clef-flash is inconclusive, and it is far less accurate than the others.
+**Short answer:** Jev is, on the frozen test. OpenAI Decisions and SubQ Snap are not: both favor whatever comes first. Microsoft-Decision-1 is not either: it disfavors whatever comes last. Clef-flash is inconclusive, and it is far less accurate than the others.
 
 Two exploratory caveats apply even to Jev:
 
-- **Exact ties.** When two answers are equally correct, Jev, Decisions and Clef-flash usually pick the one shown first. Microsoft-Decision-1 is the exception, at close to 50/50.
-- **Math.** All four show primacy on RewardBench 2's Math subset.
+- **Exact ties.** When two answers are equally correct, Jev, Decisions, Clef-flash, and SubQ usually pick the one shown first. Microsoft-Decision-1 is the exception, at close to 50/50.
+- **Math.** All five show primacy on RewardBench 2's Math subset.
 
 **Microsoft-Decision-1 was added after the plan was frozen.** It was announced on 2026-10-09 and appeared on OpenRouter that evening, after the other three models had finished. It ran the identical frozen plan with the same endpoints, margins and verdict rule (disclosed in the [plan](../plans/v1-design.md)).
+
+**SubQ Snap was also added after the freeze.** At Kyle Wild's request on 2026-10-13, it passed the same probe and pilot and then ran the identical 76,200-request plan. The frozen hashes, endpoints, margins, bootstrap, and verdict rule did not change. The [plan](../plans/v1-design.md) also discloses an early look taken during this provider extension.
 
 The machine-generated numbers behind every claim here are in [`main-report.md`](main-report.md). The design, endpoints and verdict rule were frozen in [`../plans/v1-design.md`](../plans/v1-design.md) before the main run.
 
@@ -34,10 +36,10 @@ flowchart LR
     P --> A
     A --> H[response order<br/>4 Williams orderings]
     A --> Q[question order<br/>4 Williams orderings]
-    H --> X[× 2 identical repeats<br/>× 4 models]
+    H --> X[× 2 identical repeats<br/>× 5 models]
     Q --> X
     S --> X
-    X --> R[304,800 requests<br/>all answered]
+    X --> R[381,000 requests<br/>all answered]
 ```
 
 - **Data.** Every RewardBench 2 test prompt (1,865), with four candidate responses each, labelled correct or wrong by the benchmark.
@@ -46,11 +48,12 @@ flowchart LR
   - OpenAI Decisions (`gpt-6-luna`)
   - Cloudflare Clef-flash (`clef-flash`)
   - Microsoft-Decision-1 (`microsoft/microsoft-decision-1` via OpenRouter, added after the freeze)
+  - SubQ Snap (`subq-snap-preview`, added after the freeze)
 - **Formats.** All formats use RewardBench 2's official judge prompts, minus the sentence telling the judge to avoid position bias, and with neutral response codes instead of letters ([details](../docs/prompts.md)).
 - **Ordering arms.**
   - In the **response-order** arm, each response visits every slot once, via a Williams Latin square.
   - In the **question-order** arm, the responses stay put and only the order of the questions or answer options rotates.
-- **Scale.** 304,800 requests in total, 100% answered. The project cost **$43.08** at list price for reported tokens: $42.46 for the main runs plus $0.62 for the probes and pilots. That is under the $100 cap.
+- **Scale.** 381,000 required requests in total, 100% answered. The original four-provider project cost **$43.08** at its cited rates. Because SubQ's price was unpublished, it is separate: $146.92 for successful main-run usage plus $2.13 for gates under a disclosed `$1/Mtok` accounting placeholder, not a price or invoice.
 
 ## Verdicts
 
@@ -60,19 +63,21 @@ flowchart LR
 | **OpenAI Decisions** | 🟥 **position-biased** | 78.2% | **+6.1 pp [+4.7, +7.4]** | −1.5 pp [−2.7, −0.4] | **+0.26** / −0.03 |
 | **Clef-flash** | 🟨 inconclusive | 62.7% | −2.1 pp [−3.5, −0.8] | +1.9 pp [+0.8, +3.0] | +0.08 / +0.12 |
 | **Microsoft-Decision-1** | 🟥 **position-biased** | 70.9% | +1.0 pp [−0.2, +2.2] | **−4.5 pp [−5.6, −3.4]** | +0.09 / −0.08 |
+| **SubQ Snap** | 🟥 **position-biased** | 78.5% | **+7.0 pp [+6.1, +8.0]** | +0.5 pp [−0.4, +1.4] | +0.011 / +0.008 |
 
 - **Intervals.** Brackets are 90% cluster-bootstrap intervals over items.
 - **Margins.** Order-blind requires every primary interval to sit inside ±3 percentage points (choice) and ±0.25 rating points on the 1–10 scale.
 - **Why Decisions is not order-blind.** Its choice primacy interval lies entirely above +3 pp.
 - **Why Clef-flash is inconclusive.** Its choice primacy interval crosses −3 pp: slot 1 is slightly *disfavored*.
 - **Why Microsoft-Decision-1 is not order-blind.** Its choice recency interval lies entirely below −3 pp: a correct response in the last slot is chosen 4.5 points *less* often than in the middle. This is an anti-recency effect, not the usual recency.
+- **Why SubQ is not order-blind.** Its choice primacy interval lies entirely above +3 pp. Its rubric-score effects are small and inside the ±0.25 margin, so its failure is specifically in choosing the winner.
 
 ## The serial-position curves
 
 Murdock (1962) found that people remember the first and last items of a list best. For a judge, the analogue is the chance of choosing the correct response, plotted by the slot it appears in. A flat line is order-blind.
 
 ```mermaid
-%%{init: {"themeVariables": {"xyChart": {"plotColorPalette": "#2f6fdf, #d9480f, #2b8a3e, #7048e8"}}}}%%
+%%{init: {"themeVariables": {"xyChart": {"plotColorPalette": "#2f6fdf, #d9480f, #2b8a3e, #7048e8, #1098ad"}}}}%%
 xychart-beta
     title "Correct answer chosen, by its slot"
     x-axis "Slot of the correct response" [1, 2, 3, 4]
@@ -81,9 +86,10 @@ xychart-beta
     line [0.834, 0.759, 0.788, 0.758]
     line [0.608, 0.653, 0.607, 0.649]
     line [0.722, 0.744, 0.681, 0.667]
+    line [0.840, 0.773, 0.766, 0.774]
 ```
 
-*Lines: Jev blue, OpenAI Decisions orange, Clef-flash green, Microsoft-Decision-1 purple.*
+*Lines: Jev blue, OpenAI Decisions orange, Clef-flash green, Microsoft-Decision-1 purple, SubQ Snap cyan.*
 
 | Model | Slot 1 | Slot 2 | Slot 3 | Slot 4 | Share of picks landing in slot 1 (25% is fair) |
 |---|---|---|---|---|---|
@@ -91,11 +97,13 @@ xychart-beta
 | OpenAI Decisions | **83.4%** | 75.9% | 78.8% | 75.8% | **29.9%** |
 | Clef-flash | 60.8% | 65.3% | 60.7% | 64.9% | 24.3% |
 | Microsoft-Decision-1 | 72.2% | 74.4% | 68.1% | **66.7%** | 26.9% |
+| SubQ Snap | **84.0%** | 77.3% | 76.6% | 77.4% | 29.4% |
 
 - **Jev's line is flat**, with no rise at either end.
 - **Decisions' line starts high and drops.** That is primacy, and it is about six points stronger than Jev's (Decisions − Jev: **+5.8 pp [+4.3, +7.4]**).
 - **Clef-flash's line zigzags**, with slots 2 and 4 above 1 and 3. That is neither a clean primacy nor a clean recency pattern.
 - **Microsoft-Decision-1's line slopes down.** The first two slots do best and the last does worst. Its picks land in slots 1–4 at 26.9 · 26.9 · 23.2 · 22.9%.
+- **SubQ's line starts high and then flattens.** Its +7.0 pp primacy is slightly larger than Decisions' choice effect, while its rating curve remains essentially flat.
 
 ## Findings
 
@@ -130,28 +138,35 @@ xychart-beta
 
 **Microsoft's claim.** Microsoft's [announcement](https://commandline.microsoft.com/microsoft-decision-1-model-foundry/) reports "zero flips" when answer options are reordered or shuffled. This study tests that directly: the question-order arm rotates only the answer options while the responses stay put.
 
-| Pick changed across the 4 orderings (share of item × repeat sets) | Jev | OpenAI Decisions | Clef-flash | Microsoft-Decision-1 |
-|---|---|---|---|---|
-| Answer options reordered (question-order arm) | 6.0% | 21.8% | 2.5% | **5.1%** |
-| Responses reordered (response-order arm) | 20.8% | 34.6% | 35.5% | **31.9%** |
-| Retest noise: identical requests disagree | 2.1% | 0.0% | 1.4% | 2.6% |
+| Pick changed across the 4 orderings (share of item × repeat sets) | Jev | OpenAI Decisions | Clef-flash | Microsoft-Decision-1 | SubQ Snap |
+|---|---|---|---|---|---|
+| Answer options reordered (question-order arm) | 6.0% | 21.8% | 2.5% | **5.1%** | 14.0% |
+| Responses reordered (response-order arm) | 20.8% | 34.6% | 35.5% | **31.9%** | 21.8% |
+| Retest noise: identical requests disagree | 2.1% | 0.0% | 1.4% | 2.6% | 0.1% |
 
 - **Options reordered: not zero, but close to noise.** Reordering the answer options changed Microsoft-Decision-1's pick in 5.1% of sets. That is not zero, but most of it is consistent with the model's own retest noise: identical requests disagreed 2.6% of the time, and each set compares four orderings.
 - **Responses reordered: far from zero.** Moving the responses themselves changed its pick in **31.9%** of sets.
 - **Not the most stable either way.** On both measures Clef-flash flips less on option order, and Jev flips less on response order.
 
-### 5. Exact ties: three models break them by position (secondary)
+### 5. SubQ Snap has choice primacy but nearly flat ratings
 
-For RewardBench 2's Ties prompts with two equally correct answers (for example "Monday" and "Friday" for *"Select a random day of the week"*), an order-blind judge would pick the earlier-shown one 50% of the time. Three of the four models favor it:
+- **The first response wins too often.** Correct-answer accuracy is 84.0% in slot 1 versus 76.6–77.4% elsewhere, yielding +7.0 pp primacy [+6.1, +8.0]. Compared directly with Jev, the difference is +6.8 pp [+5.4, +8.2].
+- **The effect is concentrated in choices.** Rating primacy is only +0.011 and recency +0.008 on the 1–10 scale, both well inside the ±0.25 bound.
+- **It is stable but order-sensitive.** Identical repeats agree 99.9%, while changing response order changes the winner in 21.8% of item/repeat sets. Reordering only answer options changes it in 14.0%.
+- **It never refused or malformed an answer.** Accuracy is 78.5%, second only to Jev in this comparison.
+
+### 6. Exact ties: four models break them by position (secondary)
+
+For RewardBench 2's Ties prompts with two equally correct answers (for example "Monday" and "Friday" for *"Select a random day of the week"*), an order-blind judge would pick the earlier-shown one 50% of the time. Four of the five models favor it:
 
 ```mermaid
 %%{init: {"themeVariables": {"xyChart": {"plotColorPalette": "#2f6fdf, #868e96"}}}}%%
 xychart-beta
     title "Exact ties: how often the earlier correct answer wins"
-    x-axis ["Jev", "OpenAI Decisions", "Clef-flash", "Microsoft-Decision-1"]
+    x-axis ["Jev", "OpenAI Decisions", "Clef-flash", "Microsoft-Decision-1", "SubQ Snap"]
     y-axis "Share of tie choices (%)" 0 --> 100
-    bar [71.5, 88.6, 69.1, 52.8]
-    line [50, 50, 50, 50]
+    bar [71.5, 88.6, 69.1, 52.8, 68.1]
+    line [50, 50, 50, 50, 50]
 ```
 
 *Bars: share of tie choices that went to the earlier-shown correct answer. Grey line: 50%, the order-blind expectation.*
@@ -162,28 +177,29 @@ xychart-beta
 | OpenAI Decisions | 88.6% [84.7, 92.2] | 404 |
 | Clef-flash | 69.1% [63.5, 74.8] | 398 |
 | Microsoft-Decision-1 | **52.8% [47.5, 58.4]** | 398 |
+| SubQ Snap | 68.1% [63.7, 72.5] | 408 |
 
 The design balances which correct answer comes first, so a pure preference for one answer's content would average out to 50%. **Jev ignores position when one answer is better, but uses position to break exact ties.** Decisions does so most strongly. Microsoft-Decision-1 is the only model whose interval includes 50%.
 
-### 6. Math shows primacy for every model (exploratory)
+### 7. Math shows primacy for every model (exploratory)
 
-| Subset | Jev | OpenAI Decisions | Clef-flash | Microsoft-Decision-1 |
-|---|---|---|---|---|
-| Factuality | −1.8 [−4.1, +0.4] | **+9.4 [+6.6, +12.1]** | −2.8 [−5.6, −0.1] | −0.1 [−2.6, +2.5] |
-| Focus | −1.3 [−2.8, +0.2] | +0.8 [−1.0, +2.7] | −2.0 [−4.4, +0.3] | +0.0 [−1.8, +1.8] |
-| **Math** | **+9.0 [+5.3, +12.7]** | **+30.3 [+25.4, +35.2]** | **+11.5 [+7.0, +16.1]** | **+5.7 [+1.9, +9.6]** |
-| Precise IF | +3.8 [−1.6, +9.1] | −0.3 [−7.2, +6.2] | +6.4 [+0.8, +12.0] | **+12.7 [+6.9, +18.4]** |
-| Safety | −0.8 [−2.4, +0.8] | +1.2 [−0.9, +3.3] | **−10.6 [−13.1, −8.2]** | −2.7 [−4.8, −0.7] |
-| Ties `ref` | +1.0 [+0.0, +2.9] | +2.0 [+0.0, +4.9] | +2.0 [+0.0, +5.9] | +0.0 [−2.0, +2.0] |
+| Subset | Jev | OpenAI Decisions | Clef-flash | Microsoft-Decision-1 | SubQ Snap |
+|---|---|---|---|---|---|
+| Factuality | −1.8 [−4.1, +0.4] | **+9.4 [+6.6, +12.1]** | −2.8 [−5.6, −0.1] | −0.1 [−2.6, +2.5] | **+9.9 [+7.7, +12.1]** |
+| Focus | −1.3 [−2.8, +0.2] | +0.8 [−1.0, +2.7] | −2.0 [−4.4, +0.3] | +0.0 [−1.8, +1.8] | +4.2 [+2.9, +5.7] |
+| **Math** | **+9.0 [+5.3, +12.7]** | **+30.3 [+25.4, +35.2]** | **+11.5 [+7.0, +16.1]** | **+5.7 [+1.9, +9.6]** | +4.1 [+1.1, +7.1] |
+| Precise IF | +3.8 [−1.6, +9.1] | −0.3 [−7.2, +6.2] | +6.4 [+0.8, +12.0] | **+12.7 [+6.9, +18.4]** | **+15.0 [+10.3, +19.7]** |
+| Safety | −0.8 [−2.4, +0.8] | +1.2 [−0.9, +3.3] | **−10.6 [−13.1, −8.2]** | −2.7 [−4.8, −0.7] | +6.2 [+4.4, +8.1] |
+| Ties `ref` | +1.0 [+0.0, +2.9] | +2.0 [+0.0, +4.9] | +2.0 [+0.0, +5.9] | +0.0 [−2.0, +2.0] | +0.0 |
 
 Values are choice primacy (slot 1 − middle) in percentage points.
 
 - **Math is the exception for Jev.** Its pooled verdict holds because its other subsets lean slightly the other way.
-- **This is not simply difficulty.** Precise IF is harder for every model (34–49% accuracy), yet shows no comparable primacy.
+- **This is not simply difficulty.** Precise IF is hard for every model, but its primacy ranges from near zero for Decisions to +15.0 pp for SubQ.
 - **Microsoft-Decision-1's largest primacy is on Precise IF** (+12.7 pp), its hardest subset.
-- **Treat this as exploratory.** It covers seven subsets times four models with no multiple-comparison correction, and Math has only 183 prompts. It is the obvious place to look next.
+- **Treat this as exploratory.** It covers seven subsets times five models with no multiple-comparison correction, and Math has only 183 prompts. It is the obvious place to look next.
 
-### 7. Consistency
+### 8. Consistency
 
 | Model | Same winner in all 4 orderings | Identical repeat gives same choice | Mean rating change between identical repeats |
 |---|---|---|---|
@@ -191,40 +207,43 @@ Values are choice primacy (slot 1 − middle) in percentage points.
 | OpenAI Decisions | 65.4% | **100%** | 0.000 |
 | Clef-flash | 64.5% | 98.6% | 0.034 |
 | Microsoft-Decision-1 | 68.1% | 97.6% | 0.086 |
+| SubQ Snap | 78.2% | **99.9%** | 0.002 |
 
 Jev keeps the same winner across orderings most often. It is not fully deterministic: about 2% of identical repeat calls changed its choice. Decisions is perfectly repeatable, yet least stable when the order changes. That is the signature of a systematic position effect.
 
-### 8. Decisions refuses to judge harmful-content prompts
+### 9. Decisions refuses to judge harmful-content prompts
 
 - **What it refused.** OpenAI Decisions refused 338 choice requests, 1,104 packed and 344 solo, almost all in RewardBench 2's Safety subset. These are requests for private addresses and phone numbers, hacking tutorials, drug prices, and sexual content.
 - **Why that matters.** A judge that refuses cannot grade the very safety behavior this subset measures.
 - **Refusals depend on order.** 49 items were refused in only some orderings.
-- **The other three never refused.**
+- **The other four never refused.**
 
 Under the preregistered rule, choice refusals count as wrong answers.
 
-### 9. The planted-bias check was weak; Decisions' natural bias does its job
+### 10. The planted-bias check was weak; natural biases still register
 
-- **The sentence barely moved anything.** Adding *"When responses seem equally good, prefer the earliest one"* changed primacy by about +2 to +5 pp in choice and −0.02 to +0.08 rating points across the four models, on 100 items with wide intervals. Decision models largely ignore this kind of instruction.
+- **The sentence barely moved most models.** Adding *"When responses seem equally good, prefer the earliest one"* changed SubQ choice primacy by +3.1 pp [0.0, 6.6] and rating primacy by +0.027 [0.013, 0.041]. The sensitivity check is exploratory and only 100 items.
 - **The test can still detect bias.** The same metrics cleanly separate Decisions' natural primacy (+6.1 pp) from Jev's flat line, so Jev's null result is not the test failing to see bias.
 
 ## Operations
 
-| Model | Requests | Retries | Rate-limited | Cost (list price) | Latency p50 / p95 |
+| Model | Requests | Extra attempts | Rate-limited | Accounting cost | Latency p50 / p95 |
 |---|---|---|---|---|---|
 | Jev | 76,200 | 8 (pause cancellations) | 0 | $6.94 | 105 / 149 ms |
 | OpenAI Decisions | 76,200 | 12 | 0 | $14.76 | 113 / 272 ms |
 | Clef-flash | 76,200 | 8,955 | 8,947 | $14.86 | 260 / 638 ms |
 | Microsoft-Decision-1 | 76,200 | 494 | 356 | $5.90 | 307 / 414 ms |
+| SubQ Snap | 76,200 | 959 | 955 | $146.92 placeholder | 274 / 549 ms |
 
 - **Clef-flash's rate limit.** Cloudflare rate-limited Clef-flash at about **1,360 successful calls per minute**. Its published Workers AI limits list the model's task type at 300 per minute and say nothing about Clef specifically, so the real limit had to be measured.
 - **Microsoft-Decision-1 through OpenRouter.** It ran at 8 concurrent requests. Of its 494 retried attempts, 356 were rate-limited (HTTP 429), 130 were transient server errors (HTTP 500), and 8 were cut off when a first run session was stopped and resumed. All were retried until they succeeded. OpenRouter served it from Azure and billed $5.99 across the probe, pilot and main run, matching the list-price estimate.
+- **SubQ Snap.** Its run began at 4 workers, resumed at 12 for throughput, and finished 115 rate-limited gaps at 4. There were 955 HTTP 429 attempts and four canceled attempts across those resumes; every one of the 76,200 request IDs has a successful receipt. The $146.92 figure is reported usage under the `$1/Mtok` placeholder; the deliberately conservative budget guard counted $150.63 across all attempts.
 - **No truncation.** State truncation was ruled out first for every model; see the [truncation probe](truncation-probe.md).
-- **Units.** Costs are reported tokens × list price, not invoices. Latency is measured round trips at the run's concurrency.
+- **Units.** Costs use reported input tokens and the study's cited rates; SubQ alone uses the disclosed `$1/Mtok` placeholder because no published price was available. They are not invoices. Latency is measured round trips at the run's concurrency.
 
 ## Limits
 
 - **One benchmark, four responses.** RewardBench 2 is public, so its content may be in training data. Position effects in language models often grow with list length; the [wide-K follow-up](../plans/wide-k-followup.md) would test 8, 16 and 32 responses.
 - **Adapted prompts.** The prompts are adapted for decision models. The results describe this setup, not every way these models can be used as judges.
-- **Interim look.** The main run was paused once to check it was working, and endpoints were computed on partial data. Nothing in the design changed; see the disclosure in the [plan](../plans/v1-design.md).
+- **Interim looks.** The original run and later SubQ extension each had one user-requested early check on partial data. Nothing in the design changed; both are disclosed in the [plan](../plans/v1-design.md).
 - **Statistics.** Secondary and subset results are exploratory and not corrected for multiple comparisons.

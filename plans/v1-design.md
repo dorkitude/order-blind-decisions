@@ -3,7 +3,7 @@ title: order-blind-decisions v1 design
 type: plan
 status: complete 2026-10-09 (frozen before the main run; results in results/analysis.md)
 created: 2026-10-09
-updated: 2026-10-09
+updated: 2026-10-13 (SubQ run and interim-look disclosure)
 author: Kyle Wild
 tags: [primacy, recency, position-bias, decision-models, rewardbench-2]
 related: [wide-k-followup.md, ../sources/README.md]
@@ -133,10 +133,10 @@ This section fixes the analysis before any main-run outcome exists. Pilot receip
 **Second provider added after the freeze (disclosed):**
 
 - **What and when:** SubQ Snap's public-preview `subq-snap-preview` model was added on 2026-10-13 at Kyle Wild's request, after every original and Microsoft result was known.
-- **What it gets:** the identical frozen plan (`frozen/v1`, unchanged hashes), endpoints, margins, bootstrap, and verdict rule. No outcome-dependent design change is made.
-- **Gates:** it must pass the same truncation probe and pilot before its full 76,200-request run. Its public RewardBench 2 inputs are compatible with the provider's documented default retention policy; that policy would not be acceptable for private data without account-level confirmation.
+- **What it got:** the identical frozen plan (`frozen/v1`, unchanged hashes), endpoints, margins, bootstrap, and verdict rule. No outcome-dependent design change was made.
+- **Gates:** it passed the same truncation probe and pilot before its full 76,200-request run. Its public RewardBench 2 inputs are compatible with the provider's documented default retention policy; that policy would not be acceptable for private data without account-level confirmation.
 - **Accounting:** SubQ had no published price when checked. Receipts use a conspicuous `$1/Mtok` placeholder unless an attributable rate becomes available; it is not a list price or invoice.
-- **Order:** nothing in the design was changed for it. Its results were computed after the other three models' results were already published.
+- **Order:** nothing in the design was changed for it. Its results were computed after the other four models' results were already published.
 
 **Interim look (disclosed):**
 
@@ -144,6 +144,12 @@ This section fixes the analysis before any main-run outcome exists. Pilot receip
 - **What was checked:** request bodies were audited against the design, and the endpoints were computed on that partial data.
 - **What changed:** nothing in the design, endpoints, margins or verdict rule.
 - **One fix:** error messages no longer include request URLs, which had exposed a Cloudflare account ID in four unpublished receipts. Those four were redacted before publication.
+
+**SubQ interim look (disclosed):**
+
+- **When:** on 2026-10-13, at Kyle's request for early indicators, after 16,975 successful SubQ requests covering 419 Factuality items.
+- **What was checked:** the frozen primary endpoints were computed on that incomplete provider run.
+- **What changed:** nothing in the requests, endpoints, margins, verdict rule, or run order. A report-rendering palette was extended from four to five colors after the fifth provider exposed that presentation-only limit.
 
 The final report uses the full run.
 

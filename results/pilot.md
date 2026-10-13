@@ -5,11 +5,12 @@ run: pilot
 date: 2026-10-09
 receipts: runs/pilot/
 cost_usd: 0.5142
+updated: 2026-10-13 (SubQ addendum)
 ---
 
 # Pilot run
 
-**Result: the full pipeline works on all three models.** All 4,200 pilot calls returned valid typed answers on the first attempt, with no refusals. The pilot checked plumbing, cost and latency only. Its answers were not inspected for position effects and are excluded from the confirmatory analysis.
+**Result: the full pipeline worked on the original three models and both later additions.** The original 4,200 pilot calls returned valid typed answers on the first attempt, with no refusals; the Microsoft and SubQ addenda below passed the same gate. The pilot checked plumbing, cost and latency only. Its answers were not inspected for position effects and are excluded from the confirmatory analysis.
 
 ```mermaid
 flowchart LR
@@ -48,3 +49,13 @@ Microsoft-Decision-1 was added after the plan was frozen and ran the same 35-ite
 | Microsoft-Decision-1 | 1,400 / 1,400 | 0 | 0 | `microsoft/microsoft-decision-1-20261009` | 304 / 409 ms | $0.0790 |
 
 One call was rate-limited (HTTP 429) and succeeded on retry. Receipts are in `runs/pilot/msd1/`.
+
+## Addendum: SubQ Snap (2026-10-13)
+
+SubQ Snap was added after the plan was frozen and passed the identical 35-item pilot before its full run.
+
+| Model | Calls ok | Invalid answers | Refusals | Response model | Latency p50 / p95 | Accounting cost |
+|---|---|---|---|---|---|---|
+| SubQ Snap | 1,400 / 1,400 | 0 | 0 | `subq-snap-preview` | 241 / 500 ms | $2.0097 placeholder |
+
+All calls succeeded on the first attempt. SubQ had no published price when checked, so its cost uses the study's disclosed `$1/Mtok` placeholder; it is not a list price or invoice. Receipts are in `runs/pilot/subq/`.

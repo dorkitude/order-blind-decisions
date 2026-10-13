@@ -279,7 +279,7 @@ func Report(dbPath, run string) (string, error) {
 	w("- RewardBench 2 is public, so its prompts and responses may appear in model training data.\n")
 	w("- The prompts are adapted for decision models (see [`docs/prompts.md`](../docs/prompts.md)); results describe these prompts, not judging in general.\n")
 	w("- v1 uses four responses per prompt. Position effects in LLMs often grow with list length; see [`plans/wide-k-followup.md`](../plans/wide-k-followup.md).\n")
-	w("- Costs are reported input tokens × list price, not invoices. Latency is measured HTTP round trips at the run's concurrency, not intrinsic model speed.\n")
+	w("- Accounting costs use reported input tokens. Published rates are used where available; SubQ uses a disclosed $1/Mtok placeholder because its price is unpublished. These are not invoices. Latency is measured HTTP round trips at the run's concurrency, not intrinsic model speed.\n")
 	return b.String(), nil
 }
 
@@ -319,9 +319,9 @@ func curves(db *sql.DB, b *strings.Builder, run string, present []string) error 
 		rows.Close()
 		acc[p], rat[p] = a, r
 	}
-	palette := []string{"#2f6fdf", "#d9480f", "#2b8a3e", "#7048e8"}
+	palette := []string{"#2f6fdf", "#d9480f", "#2b8a3e", "#7048e8", "#1098ad"}
 	colors := strings.Join(palette[:len(present)], ", ")
-	colorNames := []string{"blue", "orange", "green", "purple"}
+	colorNames := []string{"blue", "orange", "green", "purple", "cyan"}
 	var names []string
 	for i, p := range present {
 		names = append(names, label[p]+" "+colorNames[i])
@@ -538,7 +538,7 @@ func refusals(db *sql.DB, b *strings.Builder, run string, present []string) erro
 
 func operations(db *sql.DB, b *strings.Builder, run string, present []string) error {
 	w := func(f string, a ...any) { fmt.Fprintf(b, f, a...) }
-	w("## Calls, cost and latency\n\n| Model | Requests ok | Attempts | Rate-limited (429) | Requests with a refusal | Input tokens | Cost: reported tokens × list price | Budget-guard tally | Latency p50 / p95 |\n|---|---|---|---|---|---|---|---|---|\n")
+	w("## Calls, cost and latency\n\n| Model | Requests ok | Attempts | Rate-limited (429) | Requests with a refusal | Input tokens | Accounting cost | Budget-guard tally | Latency p50 / p95 |\n|---|---|---|---|---|---|---|---|---|\n")
 	for _, p := range present {
 		var ok, att, tok, limited int
 		var cost, guard float64
@@ -563,7 +563,7 @@ func operations(db *sql.DB, b *strings.Builder, run string, present []string) er
 		}
 		w("| %s | %d | %d | %d | %d | %d | $%.2f | $%.2f | %.0f / %.0f ms |\n", label[p], ok, att, limited, refused, tok, cost, guard, 1000*p50, 1000*p95)
 	}
-	w("\n- **Cost** prices the input tokens each provider reported for successful calls at list price ($0.042/M Jev, $0.10/M Decisions, $0.09/M Clef-flash, $0.042/M Microsoft-Decision-1). These are accounting estimates, not invoices.\n")
+	w("\n- **Accounting cost** prices the input tokens each provider reported for successful calls. Jev ($0.042/M), Decisions ($0.10/M), Clef-flash ($0.09/M), and Microsoft-Decision-1 ($0.042/M) use the study's cited rates. SubQ uses a conspicuous $1/Mtok placeholder because its price was unpublished when checked. These are accounting estimates, not invoices or a SubQ pricing claim.\n")
 	w("- **Budget-guard tally** is what the run's spending cap counted. It also charges every rejected or failed call that came back without usage at its estimated size, so it deliberately overstates spend.\n")
 	var limitedNames []string
 	for _, p := range present {
