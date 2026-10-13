@@ -36,7 +36,7 @@ func jobs(n int) ([]Job, *fake) {
 	f := &fake{failFor: map[string]int{}, seen: map[string]*atomic.Int64{}}
 	var js []Job
 	for i := 0; i < n; i++ {
-		id := string(rune('a' + i))
+		id := string(byte('a' + i))
 		body := func(model string) ([]byte, error) { return []byte(model + "/" + id), nil }
 		canon, _ := body("canon")
 		s := sha256.Sum256(canon)
