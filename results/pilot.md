@@ -33,9 +33,9 @@ flowchart LR
 | OpenAI Decisions | 1,400 / 1,400 | 0 | 0 | `openai-decisions/gpt-6-luna` | 113 / 193 ms | $0.2058 |
 | Clef-flash | 1,400 / 1,400 | 0 | 0 | `clef-flash` | 209 / 306 ms | $0.2109 |
 | Microsoft-Decision-1 | 1,400 / 1,400 | 0 | 0 | `microsoft/microsoft-decision-1-20261009` | 304 / 409 ms | $0.0790 |
-| SubQ Snap | 1,400 / 1,400 | 0 | 0 | `subq-snap-preview` | 241 / 500 ms | $2.0097 placeholder |
+| SubQ Snap | 1,400 / 1,400 | 0 | 0 | `subq-snap-preview` | 241 / 500 ms | $0.1005 |
 
 - **Validity.** "Valid" means the response answered exactly the planned questions: a choice among the four codes, or a score between levels 0 and 9.
 - **Latency.** Measured HTTP round trips at 4 concurrent requests per model, not intrinsic model speed.
-- **Cost.** Reported input tokens × cited rate; accounting estimates, not invoices. SubQ uses the study's disclosed `$1/Mtok` placeholder because no public price was pinned.
+- **Cost.** Reported input tokens × published list rate; accounting estimates, not invoices.
 - **Retries.** One Microsoft request was rate-limited and succeeded on retry. All SubQ calls succeeded on the first attempt.

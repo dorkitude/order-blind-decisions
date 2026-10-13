@@ -279,7 +279,7 @@ func Report(dbPath, run string) (string, error) {
 	w("- RewardBench 2 is public, so its prompts and responses may appear in model training data.\n")
 	w("- The prompts are adapted for decision models (see [`docs/prompts.md`](../docs/prompts.md)); results describe these prompts, not judging in general.\n")
 	w("- v1 uses four responses per prompt. Position effects in LLMs often grow with list length; see [`plans/wide-k-followup.md`](../plans/wide-k-followup.md).\n")
-	w("- Accounting costs use reported input tokens. Published rates are used where available; SubQ uses a disclosed $1/Mtok placeholder because its price is unpublished. These are not invoices. Latency is measured HTTP round trips at the run's concurrency, not intrinsic model speed.\n")
+	w("- Accounting costs use reported input tokens and published list rates. They are not invoices. Latency is measured HTTP round trips at the run's concurrency, not intrinsic model speed.\n")
 	return b.String(), nil
 }
 
@@ -543,6 +543,13 @@ func operations(db *sql.DB, b *strings.Builder, run string, present []string) er
 		var ok, att, tok, limited int
 		var cost, guard float64
 		db.QueryRow(`SELECT sum(ok), count(*), sum(input_tokens), coalesce(sum(CASE WHEN usage_reported=1 THEN cost_usd END),0), sum(cost_usd), sum(status=429) FROM receipts WHERE run=? AND provider=?`, run, p).Scan(&ok, &att, &tok, &cost, &guard, &limited)
+		// SubQ receipts collected before its list price was published used a
+		// $1/M accounting placeholder. Reprice those immutable receipts for
+		// reports while leaving runs collected at the current rate unchanged.
+		if p == "subq" && tok > 0 && cost > float64(tok)*0.10/1e6 {
+			cost *= 0.05
+			guard *= 0.05
+		}
 		var refused int
 		db.QueryRow(`SELECT count(DISTINCT request_id) FROM answers WHERE run=? AND provider=? AND type='refusal'`, run, p).Scan(&refused)
 		var secs []float64
@@ -563,7 +570,7 @@ func operations(db *sql.DB, b *strings.Builder, run string, present []string) er
 		}
 		w("| %s | %d | %d | %d | %d | %d | $%.2f | $%.2f | %.0f / %.0f ms |\n", label[p], ok, att, limited, refused, tok, cost, guard, 1000*p50, 1000*p95)
 	}
-	w("\n- **Accounting cost** prices the input tokens each provider reported for successful calls. Jev ($0.042/M), Decisions ($0.10/M), Clef-flash ($0.09/M), and Microsoft-Decision-1 ($0.042/M) use the study's cited rates. SubQ uses a conspicuous $1/Mtok placeholder because its price was unpublished when checked. These are accounting estimates, not invoices or a SubQ pricing claim.\n")
+	w("\n- **Accounting cost** prices the input tokens each provider reported for successful calls. Jev and Microsoft-Decision-1 use $0.042/M, Decisions $0.10/M, Clef-flash $0.09/M, and SubQ Snap $0.05/M. These are list-price estimates, not invoices.\n")
 	w("- **Budget-guard tally** is what the run's spending cap counted. It also charges every rejected or failed call that came back without usage at its estimated size, so it deliberately overstates spend.\n")
 	var limitedNames []string
 	for _, p := range present {

@@ -38,11 +38,11 @@ Each provider received 28 requests: seven target lengths, start and end placemen
 | OpenAI Decisions | 28/28 | 681 → 7,881 | $0.0100 |
 | Clef-flash | 28/28 | 847 → 9,739 | $0.0111 |
 | Microsoft-Decision-1 | 28/28 | 729 → 9,621 | $0.0050 |
-| SubQ Snap | 28/28 | 795 → 9,687 | $0.1217 placeholder |
+| SubQ Snap | 28/28 | 795 → 9,687 | $0.0061 |
 
 - **Calls.** All 140 calls succeeded; every SubQ probe call succeeded on the first attempt.
 - **Token counts.** Reported input tokens grow linearly with length for every provider, so none is capping what it counts.
-- **Cost.** Reported tokens × cited rate; accounting estimates, not invoices. SubQ uses the disclosed `$1/Mtok` placeholder because no public price was pinned.
+- **Cost.** Reported tokens × published list rate; accounting estimates, not invoices.
 - **Latency.** SubQ round-trip latency was 285 / 356 ms p50 / p95.
 
 ## Limits

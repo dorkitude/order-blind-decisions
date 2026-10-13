@@ -49,7 +49,7 @@ flowchart LR
 - **Ordering arms.**
   - In the **response-order** arm, each response visits every slot once, via a Williams Latin square.
   - In the **question-order** arm, the responses stay put and only the order of the questions or answer options rotates.
-- **Scale.** 381,000 required requests in total, 100% answered. The cited-rate cost was **$43.08** for Jev, Decisions, Clef-flash and Microsoft-Decision-1. SubQ recorded $146.92 for the main study plus $2.13 for gates under a disclosed `$1/Mtok` accounting placeholder, not a price or invoice.
+- **Scale.** 381,000 required requests in total, 100% answered. The estimated main-study cost was **$50.43** at published list rates. SubQ Snap accounted for $7.35 of that total, plus $0.11 for its gates.
 
 ## Verdicts
 
@@ -229,13 +229,13 @@ Under the preregistered rule, choice refusals count as wrong answers.
 | OpenAI Decisions | 76,200 | 12 | 0 | $14.76 | 113 / 272 ms |
 | Clef-flash | 76,200 | 8,955 | 8,947 | $14.86 | 260 / 638 ms |
 | Microsoft-Decision-1 | 76,200 | 494 | 356 | $5.90 | 307 / 414 ms |
-| SubQ Snap | 76,200 | 959 | 955 | $146.92 placeholder | 274 / 549 ms |
+| SubQ Snap | 76,200 | 959 | 955 | $7.35 | 274 / 549 ms |
 
 - **Clef-flash's rate limit.** Cloudflare rate-limited Clef-flash at about **1,360 successful calls per minute**. Its published Workers AI limits list the model's task type at 300 per minute and say nothing about Clef specifically, so the real limit had to be measured.
 - **Microsoft-Decision-1 through OpenRouter.** At 8 concurrent requests, 494 attempts were retried: 356 HTTP 429 responses, 130 transient HTTP 500 responses and 8 canceled attempts. Every required request succeeded. OpenRouter served it from Azure and billed $5.99 across the probe, pilot and main study, matching the list-price estimate.
-- **SubQ Snap.** There were 955 HTTP 429 attempts and four canceled attempts; every one of the 76,200 request IDs has a successful receipt. The $146.92 figure is reported usage under the `$1/Mtok` placeholder; the deliberately conservative budget guard counted $150.63 across all attempts.
+- **SubQ Snap.** There were 955 HTTP 429 attempts and four canceled attempts; every one of the 76,200 request IDs has a successful receipt. Reported successful-call usage costs an estimated $7.35 at the published rate; the budget guard counted $7.53 across all attempts.
 - **No truncation.** State truncation was ruled out first for every model; see the [truncation probe](truncation-probe.md).
-- **Units.** Costs use reported input tokens and the study's cited rates; SubQ alone uses the disclosed `$1/Mtok` placeholder because no published price was available. They are not invoices. Latency is measured round trips at the run's concurrency.
+- **Units.** Costs use reported input tokens and published list rates. They are not invoices. Latency is measured round trips at the run's concurrency.
 
 ## Limits
 

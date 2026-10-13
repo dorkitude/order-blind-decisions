@@ -35,10 +35,10 @@ All are publishable; this repository is public.
 | Model | Role | Route | Input price |
 |---|---|---|---|
 | Jev `jev-1.13.0` | reference and baseline | `POST https://typesafe.int.exe.xyz/v1/systemone` (exe.dev integration) | $0.042/M |
-| OpenAI Decisions `gpt-6-luna` | compared with Jev | `POST https://openai.int.exe.xyz/v1/decisions` (exe.dev integration), Jev body translated by the provider-openai-decisions adapter | $0.10/M (placeholder until OpenAI publishes) |
+| OpenAI Decisions `gpt-6-luna` | compared with Jev | `POST https://openai.int.exe.xyz/v1/decisions` (exe.dev integration), Jev body translated by the provider-openai-decisions adapter | $0.10/M |
 | Cloudflare Clef-flash `clef-flash` | compared with Jev | `POST https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/cloudflare/clef-flash`, bearer `CLOUDFLARE_API_TOKEN`, Jev-compatible body | $0.09/M |
 | Microsoft-Decision-1 `microsoft/microsoft-decision-1` | compared with Jev | `POST https://openrouter.int.exe.xyz/api/alpha/decisions` (exe.dev OpenRouter integration), Jev-compatible body and response | $0.042/M |
-| SubQ Snap `subq-snap-preview` | compared with Jev | `POST https://api.subq.ai/v1/systemone`, Jev-compatible body and response | unpublished; $1/M placeholder |
+| SubQ Snap `subq-snap-preview` | compared with Jev | `POST https://api.subq.ai/v1/systemone`, Jev-compatible body and response | $0.05/M input; output free |
 
 Full Clef (27B) is out of scope on cost. Public docs describe Clef-flash and Decisions as "Jev-compatible decision models."
 
@@ -124,7 +124,7 @@ This section fixes the analysis before any main-run outcome exists. Pilot receip
 - **Verdict.** A model is **order-blind** only if all four primary CIs lie inside their margins. It is **position-biased** if any CI lies entirely outside its margin. Otherwise it is **inconclusive**.
 - **Paired comparisons with Jev.** The same endpoints are reported for every non-reference provider minus Jev, using the same item resamples.
 
-**Protocol consistency.** Every provider receives the identical `frozen/v1` plan and passes the same truncation probe and excluded pilot before its 76,200-request study. Provider availability affects collection dates, not hashes, endpoints, margins, bootstrap or the verdict rule. SubQ's public RewardBench 2 inputs are compatible with its documented default retention policy; that policy is not appropriate for private data without account-level confirmation. Its receipts use a conspicuous `$1/Mtok` accounting placeholder because no public price was pinned; this is not a list price or invoice.
+**Protocol consistency.** Every provider receives the identical `frozen/v1` plan and passes the same truncation probe and excluded pilot before its 76,200-request study. Provider availability does not affect hashes, endpoints, margins, bootstrap or the verdict rule. SubQ's public RewardBench 2 inputs are compatible with its documented default retention policy; that policy is not appropriate for private data without account-level confirmation.
 
 **Secondary endpoints** are descriptive, with no verdict:
 
@@ -139,7 +139,7 @@ This section fixes the analysis before any main-run outcome exists. Pilot receip
 
 ## Budget and run gates
 
-- **Budget caps.** The runner tracks accounting spend and refuses a live call that would exceed the selected cap. The cited-price providers use a $100 project cap. The $250 aggregate cap used with SubQ reflects its deliberately conservative `$1/Mtok` placeholder and is not an expected bill or pricing claim.
+- **Budget caps.** The runner tracks accounting spend and refuses a live call that would exceed the selected cap. The provider runs use project-level caps above their estimated list-price cost.
 - Every provider covers the same frozen items, leaving paired data at each completed item boundary.
 - Live calls require `--live`.
 

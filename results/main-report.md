@@ -226,9 +226,9 @@ Across all models, 49 items were refused in only some of their choice orderings 
 | OpenAI Decisions | 76200 | 76212 | 0 | 1786 | 147557832 | $14.76 | $14.76 | 113 / 272 ms |
 | Clef-flash | 76200 | 85155 | 8947 | 0 | 165125458 | $14.86 | $16.94 | 260 / 638 ms |
 | Microsoft-Decision-1 | 76200 | 76694 | 356 | 0 | 140551256 | $5.90 | $5.96 | 307 / 414 ms |
-| SubQ Snap | 76200 | 77159 | 955 | 0 | 146915242 | $146.92 | $150.63 | 274 / 549 ms |
+| SubQ Snap | 76200 | 77159 | 955 | 0 | 146915242 | $7.35 | $7.53 | 274 / 549 ms |
 
-- **Accounting cost** prices the input tokens each provider reported for successful calls. Jev ($0.042/M), Decisions ($0.10/M), Clef-flash ($0.09/M), and Microsoft-Decision-1 ($0.042/M) use the study's cited rates. SubQ uses a conspicuous $1/Mtok placeholder because its price was unpublished when checked. These are accounting estimates, not invoices or a SubQ pricing claim.
+- **Accounting cost** prices the input tokens each provider reported for successful calls. Jev and Microsoft-Decision-1 use $0.042/M, Decisions $0.10/M, Clef-flash $0.09/M, and SubQ Snap $0.05/M. These are list-price estimates, not invoices.
 - **Budget-guard tally** is what the run's spending cap counted. It also charges every rejected or failed call that came back without usage at its estimated size, so it deliberately overstates spend.
 - **Rate limits.** Calls answered with HTTP 429: Clef-flash (8947), Microsoft-Decision-1 (356), SubQ Snap (955). Every rate-limited call was retried until it succeeded. For Clef-flash, Cloudflare's message was *"inference request per min rate reached"*: at 16 concurrent requests it sustained about 1,360 successful calls per minute, while Cloudflare's published Workers AI limits list Clef-flash's task type (Text Generation) at 300 requests per minute and give no figure for Clef, so the real limit was found empirically.
 - **Latency** is measured HTTP round trips at 4–16 concurrent requests per model, not intrinsic model speed.
@@ -238,4 +238,4 @@ Across all models, 49 items were refused in only some of their choice orderings 
 - RewardBench 2 is public, so its prompts and responses may appear in model training data.
 - The prompts are adapted for decision models (see [`docs/prompts.md`](../docs/prompts.md)); results describe these prompts, not judging in general.
 - v1 uses four responses per prompt. Position effects in LLMs often grow with list length; see [`plans/wide-k-followup.md`](../plans/wide-k-followup.md).
-- Accounting costs use reported input tokens. Published rates are used where available; SubQ uses a disclosed $1/Mtok placeholder because its price is unpublished. These are not invoices. Latency is measured HTTP round trips at the run's concurrency, not intrinsic model speed.
+- Accounting costs use reported input tokens and published list rates. They are not invoices. Latency is measured HTTP round trips at the run's concurrency, not intrinsic model speed.

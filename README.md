@@ -23,7 +23,7 @@ On all 1,865 RewardBench 2 prompts, each with four responses rotated through eve
 - **Caveat 1, exact ties.** When two answers are equally correct, Jev, Decisions, Clef-flash, and SubQ usually pick the one shown first: **71.5%, 88.6%, 69.1%, and 68.1%**. An order-blind judge would pick it 50% of the time. Microsoft-Decision-1 is the exception at **52.8%**.
 - **Caveat 2, Math (exploratory).** All five show primacy on RewardBench 2's Math subset; SubQ's effect is +4.1 pp.
 - **Refusals.** Decisions refused to judge 338 choice requests, almost all on harmful-content prompts in the Safety subset. The other four never refused.
-- **Cost.** Jev, Decisions, Clef-flash and Microsoft-Decision-1 cost **$43.08** at their cited rates. SubQ recorded $146.92 for successful main-study usage and $2.13 for its gates under a disclosed `$1/Mtok` placeholder because no public price was pinned; this is not a pricing claim or invoice.
+- **Cost.** The five main-study arms cost an estimated **$50.43** at published list rates. SubQ Snap used 146.92 million input tokens, an estimated **$7.35**, plus **$0.11** for the pilot and truncation probe.
 
 | | Jev | OpenAI Decisions | Clef-flash | Microsoft-Decision-1 | SubQ Snap |
 |---|---|---|---|---|---|
@@ -42,7 +42,7 @@ On all 1,865 RewardBench 2 prompts, each with four responses rotated through eve
 | Exact ties: earlier answer wins (50% is fair) | 71.5% | **88.6%** | 69.1% | **52.8%** | 68.1% |
 | Math primacy (exploratory) | +9.0 pp | **+30.3 pp** | +11.5 pp | +5.7 pp | +4.1 pp |
 | Requests with a refusal | 0 | 1,786 | 0 | 0 | 0 |
-| Accounting cost (main run) | $6.94 | $14.76 | $14.86 | $5.90 | $146.92 placeholder |
+| Accounting cost (main run) | $6.94 | $14.76 | $14.86 | $5.90 | $7.35 |
 | Latency p50 / p95 | 105 / 149 ms | 113 / 272 ms | 260 / 638 ms | 307 / 414 ms | 274 / 549 ms |
 
 - **Intervals and margins.** Brackets are 90% cluster-bootstrap intervals over items. The margins in parentheses are the preregistered order-blind thresholds.

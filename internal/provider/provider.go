@@ -67,7 +67,7 @@ const (
 	subqIntegrationURL = "https://subq.int.exe.xyz/v1/systemone"
 	subqDirectURL      = "https://api.subq.ai/v1/systemone"
 	subqModel          = "subq-snap-preview"
-	subqPlaceholderUSD = 1.0
+	subqUSDPerMTokInput = 0.05
 )
 
 // New returns the named provider.
@@ -91,7 +91,7 @@ func New(name string) (Provider, error) {
 				return nil, fmt.Errorf("SUBQ_API_KEY is required for the direct SubQ route")
 			}
 		}
-		rate := subqPlaceholderUSD
+		rate := subqUSDPerMTokInput
 		if raw := strings.TrimSpace(os.Getenv("SUBQ_USD_PER_MTOK_INPUT")); raw != "" {
 			v, err := strconv.ParseFloat(raw, 64)
 			if err != nil || v <= 0 {
@@ -199,9 +199,8 @@ func (p msd1) Do(ctx context.Context, body []byte) (Result, error) {
 	return r, err
 }
 
-// subq is SubQ Snap's Jev-compatible System One endpoint. Pricing was not
-// published when this provider was added, so accounting defaults to a clearly
-// documented placeholder that can be overridden for a run.
+// subq is SubQ Snap's Jev-compatible System One endpoint. Accounting defaults
+// to the published input-token list price and can be overridden for a run.
 type subq struct {
 	url, token, model string
 	usdPerMTokInput   float64

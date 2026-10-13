@@ -45,7 +45,7 @@ go build -o order-blind .
 
 Off exe.dev, point the provider URLs in [`internal/provider/provider.go`](../internal/provider/provider.go) at the direct APIs and supply keys.
 
-SubQ had not published pricing when checked on 2026-10-13. Its receipts therefore use an explicit `$1/Mtok` accounting placeholder unless `SUBQ_USD_PER_MTOK_INPUT` is set; this is neither a list price nor an invoice. The main run uses the unchanged public RewardBench 2 plan. SubQ's documented default is indefinite prompt/completion retention, so do not reuse this route for private data without confirming the account policy.
+SubQ Snap's published list price is $0.05 per million input tokens, with output free. `SUBQ_USD_PER_MTOK_INPUT` can pin an attributable override. The main run uses the public RewardBench 2 plan. SubQ's documented default is indefinite prompt/completion retention, so do not reuse this route for private data without confirming the account policy.
 
 The SubQ provider uses the same sequential gates and frozen plan:
 
