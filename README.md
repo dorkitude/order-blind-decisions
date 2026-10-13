@@ -133,7 +133,6 @@ This study asks whether decision models trace the U or a flat line. With four re
 - **Main run.** All 381,000 requests across five providers were answered ([analysis](results/analysis.md), [full report](results/main-report.md)).
 - **Microsoft-Decision-1.** Added after the freeze (2026-10-09): it passed the same probe and pilot, then all 76,200 of its requests were answered, using the identical frozen plan.
 - **SubQ Snap.** Added after the freeze (2026-10-13): it passed the same gates and completed all 76,200 requests under the unchanged plan.
-- **Interim looks.** The original main run and later SubQ run each had a disclosed early check at Kyle's request; nothing in the design changed.
 
 Further reading:
 
