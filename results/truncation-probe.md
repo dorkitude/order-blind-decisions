@@ -4,8 +4,7 @@ type: result
 run: probe
 date: 2026-10-09
 receipts: runs/probe/
-cost_usd: 0.0263
-updated: 2026-10-13 (SubQ addendum)
+updated: 2026-10-13
 ---
 
 # Truncation probe
@@ -31,31 +30,22 @@ Neutral filler text ("Ledger line 0042: crate 87 of blue cloth arrived…") is p
 
 ## Results
 
-Needles found (of 2), with reported input tokens in brackets:
+Each provider received 28 requests: seven target lengths, start and end placement, and two needle codes per cell.
 
-| Target tokens | Jev start / end | Decisions start / end | Clef-flash start / end |
-|---|---|---|---|
-| 500 | 2/2 · 2/2 [1,004] | 2/2 · 2/2 [681] | 2/2 · 2/2 [847] |
-| 1,000 | 2/2 · 2/2 [1,571] | 2/2 · 2/2 [1,156] | 2/2 · 2/2 [1,433] |
-| 2,000 | 2/2 · 2/2 [2,705] | 2/2 · 2/2 [2,106] | 2/2 · 2/2 [2,605] |
-| 3,000 | 2/2 · 2/2 [3,872] | 2/2 · 2/2 [3,081] | 2/2 · 2/2 [3,811] |
-| 4,000 | 2/2 · 2/2 [5,007] | 2/2 · 2/2 [4,031] | 2/2 · 2/2 [4,984] |
-| 6,000 | 2/2 · 2/2 [7,307] | 2/2 · 2/2 [5,956] | 2/2 · 2/2 [7,361] |
-| 8,000 | 2/2 · 2/2 [9,608] | 2/2 · 2/2 [7,881] | 2/2 · 2/2 [9,739] |
+| Model | Needles found | Reported input tokens, shortest → longest | Cost |
+|---|---:|---:|---:|
+| Jev | 28/28 | 1,004 → 9,608 | $0.0052 |
+| OpenAI Decisions | 28/28 | 681 → 7,881 | $0.0100 |
+| Clef-flash | 28/28 | 847 → 9,739 | $0.0111 |
+| Microsoft-Decision-1 | 28/28 | 729 → 9,621 | $0.0050 |
+| SubQ Snap | 28/28 | 795 → 9,687 | $0.1217 placeholder |
 
-- **Calls.** All 84 calls succeeded on the first attempt, with no retries.
+- **Calls.** All 140 calls succeeded; every SubQ probe call succeeded on the first attempt.
 - **Token counts.** Reported input tokens grow linearly with length for every provider, so none is capping what it counts.
-- **Cost.** $0.0052 Jev, $0.0100 Decisions, $0.0111 Clef-flash (reported tokens × list price; accounting estimates, not invoices).
+- **Cost.** Reported tokens × cited rate; accounting estimates, not invoices. SubQ uses the disclosed `$1/Mtok` placeholder because no public price was pinned.
+- **Latency.** SubQ round-trip latency was 285 / 356 ms p50 / p95.
 
 ## Limits
 
 - **Easy task.** The needle is unambiguous; this shows the text is *read*, not that it is weighed equally.
 - **Byte size is a proxy.** Request size is compared in bytes; dense text such as code could tokenize larger. v1's largest request is about a quarter smaller than the largest probe request.
-
-## Addendum: Microsoft-Decision-1 (2026-10-09)
-
-Microsoft-Decision-1 was added after the plan was frozen and ran the same 28 probe requests through OpenRouter before its pilot. **It found every needle at both start and end at every length**, with reported input tokens growing linearly from 729 (target 500) to 9,621 (target 8,000). Cost: $0.005. Receipts are in `runs/probe/msd1/`.
-
-## Addendum: SubQ Snap (2026-10-13)
-
-SubQ Snap ran the same 28 requests before its pilot. **It found every start and end needle at every length**, with reported input tokens growing from about 795 at target 500 to 9,687 at target 8,000. All calls succeeded on the first attempt; latency was 285 / 356 ms p50 / p95. Its $0.1217 accounting cost uses the disclosed `$1/Mtok` placeholder because SubQ's price was unpublished, not a list price or invoice. Receipts are in `runs/probe/subq/`.

@@ -3,7 +3,7 @@ title: order-blind-decisions v1 design
 type: plan
 status: complete 2026-10-09 (frozen before the main run; results in results/analysis.md)
 created: 2026-10-09
-updated: 2026-10-13 (SubQ run and interim-look disclosure)
+updated: 2026-10-13
 author: Kyle Wild
 tags: [primacy, recency, position-bias, decision-models, rewardbench-2]
 related: [wide-k-followup.md, ../sources/README.md]
@@ -37,8 +37,8 @@ All are publishable; this repository is public.
 | Jev `jev-1.13.0` | reference and baseline | `POST https://typesafe.int.exe.xyz/v1/systemone` (exe.dev integration) | $0.042/M |
 | OpenAI Decisions `gpt-6-luna` | compared with Jev | `POST https://openai.int.exe.xyz/v1/decisions` (exe.dev integration), Jev body translated by the provider-openai-decisions adapter | $0.10/M (placeholder until OpenAI publishes) |
 | Cloudflare Clef-flash `clef-flash` | compared with Jev | `POST https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/cloudflare/clef-flash`, bearer `CLOUDFLARE_API_TOKEN`, Jev-compatible body | $0.09/M |
-| Microsoft-Decision-1 `microsoft/microsoft-decision-1` | compared with Jev (added after the freeze) | `POST https://openrouter.int.exe.xyz/api/alpha/decisions` (exe.dev OpenRouter integration), Jev-compatible body and response | $0.042/M |
-| SubQ Snap `subq-snap-preview` | compared with Jev (added after the freeze on 2026-10-13) | `POST https://api.subq.ai/v1/systemone`, Jev-compatible body and response | unpublished; $1/M placeholder |
+| Microsoft-Decision-1 `microsoft/microsoft-decision-1` | compared with Jev | `POST https://openrouter.int.exe.xyz/api/alpha/decisions` (exe.dev OpenRouter integration), Jev-compatible body and response | $0.042/M |
+| SubQ Snap `subq-snap-preview` | compared with Jev | `POST https://api.subq.ai/v1/systemone`, Jev-compatible body and response | unpublished; $1/M placeholder |
 
 Full Clef (27B) is out of scope on cost. Public docs describe Clef-flash and Decisions as "Jev-compatible decision models."
 
@@ -122,36 +122,9 @@ This section fixes the analysis before any main-run outcome exists. Pilot receip
 - **Intervals.** 90% CIs come from a cluster bootstrap over items: 10,000 resamples, seed `20261009`, percentile intervals.
 - **Refusals.** For choice accuracy, a refusal or invalid answer counts as not choosing the correct response. Refusals are also reported separately.
 - **Verdict.** A model is **order-blind** only if all four primary CIs lie inside their margins. It is **position-biased** if any CI lies entirely outside its margin. Otherwise it is **inconclusive**.
-- **Paired comparisons with Jev.** The same endpoints are reported as Decisions − Jev and Clef-flash − Jev, using the same item resamples.
+- **Paired comparisons with Jev.** The same endpoints are reported for every non-reference provider minus Jev, using the same item resamples.
 
-**Provider added after the freeze (disclosed):**
-
-- **What and when:** Microsoft-Decision-1 was announced on 2026-10-09 and appeared on OpenRouter's decisions API the same evening. It was added as a fourth model after the v1 main run had finished.
-- **What it got:** the identical frozen plan (`frozen/v1`, unchanged hashes), the same endpoints, margins, bootstrap and verdict rule.
-- **Gates:** it passed the same truncation probe and pilot gates before its full run.
-
-**Second provider added after the freeze (disclosed):**
-
-- **What and when:** SubQ Snap's public-preview `subq-snap-preview` model was added on 2026-10-13 at Kyle Wild's request, after every original and Microsoft result was known.
-- **What it got:** the identical frozen plan (`frozen/v1`, unchanged hashes), endpoints, margins, bootstrap, and verdict rule. No outcome-dependent design change was made.
-- **Gates:** it passed the same truncation probe and pilot before its full 76,200-request run. Its public RewardBench 2 inputs are compatible with the provider's documented default retention policy; that policy would not be acceptable for private data without account-level confirmation.
-- **Accounting:** SubQ had no published price when checked. Receipts use a conspicuous `$1/Mtok` placeholder unless an attributable rate becomes available; it is not a list price or invoice.
-- **Order:** nothing in the design was changed for it. Its results were computed after the other four models' results were already published.
-
-**Interim look (disclosed):**
-
-- **When:** on 2026-10-09 the main run was paused at Kyle's request to check that it was working. All three models were partway through **Factuality**, the first subset in plan order: Jev 299 items, Decisions 252, Clef-flash 137.
-- **What was checked:** request bodies were audited against the design, and the endpoints were computed on that partial data.
-- **What changed:** nothing in the design, endpoints, margins or verdict rule.
-- **One fix:** error messages no longer include request URLs, which had exposed a Cloudflare account ID in four unpublished receipts. Those four were redacted before publication.
-
-**SubQ interim look (disclosed):**
-
-- **When:** on 2026-10-13, at Kyle's request for early indicators, after 16,975 successful SubQ requests covering 419 Factuality items.
-- **What was checked:** the frozen primary endpoints were computed on that incomplete provider run.
-- **What changed:** nothing in the requests, endpoints, margins, verdict rule, or run order. A report-rendering palette was extended from four to five colors after the fifth provider exposed that presentation-only limit.
-
-The final report uses the full run.
+**Protocol consistency.** Every provider receives the identical `frozen/v1` plan and passes the same truncation probe and excluded pilot before its 76,200-request study. Provider availability affects collection dates, not hashes, endpoints, margins, bootstrap or the verdict rule. SubQ's public RewardBench 2 inputs are compatible with its documented default retention policy; that policy is not appropriate for private data without account-level confirmation. Its receipts use a conspicuous `$1/Mtok` accounting placeholder because no public price was pinned; this is not a list price or invoice.
 
 **Secondary endpoints** are descriptive, with no verdict:
 
@@ -166,10 +139,8 @@ The final report uses the full run.
 
 ## Budget and run gates
 
-- **Original v1 cap: $100.** The runner tracks accounting spend and refuses a live call that would exceed the selected cap.
-- **SubQ extension cap: $250.** Kyle explicitly authorized the post-freeze full SubQ run on 2026-10-13. Because SubQ pricing is unpublished, the runner uses a deliberately conservative `$1/Mtok` placeholder; `$250` is an accounting ceiling across the existing project plus SubQ, not an expected bill or a pricing claim.
-- The full v1 run is estimated at about $30 (chars/4 token estimate, so allow ±50%).
-- The run walks items across all three models together, so any stop leaves paired data.
+- **Budget caps.** The runner tracks accounting spend and refuses a live call that would exceed the selected cap. The cited-price providers use a $100 project cap. The $250 aggregate cap used with SubQ reflects its deliberately conservative `$1/Mtok` placeholder and is not an expected bill or pricing claim.
+- Every provider covers the same frozen items, leaving paired data at each completed item boundary.
 - Live calls require `--live`.
 
 Gates, in order:

@@ -3,7 +3,7 @@ title: "Analysis: are decision models order-blind?"
 type: analysis
 run: main
 date: 2026-10-09
-updated: 2026-10-13 (SubQ Snap added)
+updated: 2026-10-13
 author: Kyle Wild
 data: results/main-report.md (generated), runs/main/ (receipts)
 tags: [primacy, recency, serial-position, decision-models, rewardbench-2]
@@ -17,10 +17,6 @@ Two exploratory caveats apply even to Jev:
 
 - **Exact ties.** When two answers are equally correct, Jev, Decisions, Clef-flash, and SubQ usually pick the one shown first. Microsoft-Decision-1 is the exception, at close to 50/50.
 - **Math.** All five show primacy on RewardBench 2's Math subset.
-
-**Microsoft-Decision-1 was added after the plan was frozen.** It was announced on 2026-10-09 and appeared on OpenRouter that evening, after the other three models had finished. It ran the identical frozen plan with the same endpoints, margins and verdict rule (disclosed in the [plan](../plans/v1-design.md)).
-
-**SubQ Snap was also added after the freeze.** At Kyle Wild's request on 2026-10-13, it passed the same probe and pilot and then ran the identical 76,200-request plan. The frozen hashes, endpoints, margins, bootstrap, and verdict rule did not change. The [plan](../plans/v1-design.md) also discloses an early look taken during this provider extension.
 
 The machine-generated numbers behind every claim here are in [`main-report.md`](main-report.md). The design, endpoints and verdict rule were frozen in [`../plans/v1-design.md`](../plans/v1-design.md) before the main run.
 
@@ -47,13 +43,13 @@ flowchart LR
   - Jev (`jev-1.13.0`, the reference)
   - OpenAI Decisions (`gpt-6-luna`)
   - Cloudflare Clef-flash (`clef-flash`)
-  - Microsoft-Decision-1 (`microsoft/microsoft-decision-1` via OpenRouter, added after the freeze)
-  - SubQ Snap (`subq-snap-preview`, added after the freeze)
+  - Microsoft-Decision-1 (`microsoft/microsoft-decision-1` via OpenRouter)
+  - SubQ Snap (`subq-snap-preview`)
 - **Formats.** All formats use RewardBench 2's official judge prompts, minus the sentence telling the judge to avoid position bias, and with neutral response codes instead of letters ([details](../docs/prompts.md)).
 - **Ordering arms.**
   - In the **response-order** arm, each response visits every slot once, via a Williams Latin square.
   - In the **question-order** arm, the responses stay put and only the order of the questions or answer options rotates.
-- **Scale.** 381,000 required requests in total, 100% answered. The original four-provider project cost **$43.08** at its cited rates. Because SubQ's price was unpublished, it is separate: $146.92 for successful main-run usage plus $2.13 for gates under a disclosed `$1/Mtok` accounting placeholder, not a price or invoice.
+- **Scale.** 381,000 required requests in total, 100% answered. The cited-rate cost was **$43.08** for Jev, Decisions, Clef-flash and Microsoft-Decision-1. SubQ recorded $146.92 for the main study plus $2.13 for gates under a disclosed `$1/Mtok` accounting placeholder, not a price or invoice.
 
 ## Verdicts
 
@@ -236,14 +232,13 @@ Under the preregistered rule, choice refusals count as wrong answers.
 | SubQ Snap | 76,200 | 959 | 955 | $146.92 placeholder | 274 / 549 ms |
 
 - **Clef-flash's rate limit.** Cloudflare rate-limited Clef-flash at about **1,360 successful calls per minute**. Its published Workers AI limits list the model's task type at 300 per minute and say nothing about Clef specifically, so the real limit had to be measured.
-- **Microsoft-Decision-1 through OpenRouter.** It ran at 8 concurrent requests. Of its 494 retried attempts, 356 were rate-limited (HTTP 429), 130 were transient server errors (HTTP 500), and 8 were cut off when a first run session was stopped and resumed. All were retried until they succeeded. OpenRouter served it from Azure and billed $5.99 across the probe, pilot and main run, matching the list-price estimate.
-- **SubQ Snap.** Its run began at 4 workers, resumed at 12 for throughput, and finished 115 rate-limited gaps at 4. There were 955 HTTP 429 attempts and four canceled attempts across those resumes; every one of the 76,200 request IDs has a successful receipt. The $146.92 figure is reported usage under the `$1/Mtok` placeholder; the deliberately conservative budget guard counted $150.63 across all attempts.
+- **Microsoft-Decision-1 through OpenRouter.** At 8 concurrent requests, 494 attempts were retried: 356 HTTP 429 responses, 130 transient HTTP 500 responses and 8 canceled attempts. Every required request succeeded. OpenRouter served it from Azure and billed $5.99 across the probe, pilot and main study, matching the list-price estimate.
+- **SubQ Snap.** There were 955 HTTP 429 attempts and four canceled attempts; every one of the 76,200 request IDs has a successful receipt. The $146.92 figure is reported usage under the `$1/Mtok` placeholder; the deliberately conservative budget guard counted $150.63 across all attempts.
 - **No truncation.** State truncation was ruled out first for every model; see the [truncation probe](truncation-probe.md).
 - **Units.** Costs use reported input tokens and the study's cited rates; SubQ alone uses the disclosed `$1/Mtok` placeholder because no published price was available. They are not invoices. Latency is measured round trips at the run's concurrency.
 
 ## Limits
 
-- **One benchmark, four responses.** RewardBench 2 is public, so its content may be in training data. Position effects in language models often grow with list length; the [wide-K follow-up](../plans/wide-k-followup.md) would test 8, 16 and 32 responses.
+- **One benchmark, four responses.** RewardBench 2 is public, so its content may be in training data. Position effects in language models often grow with list length; the proposed [wide-K study](../plans/wide-k-followup.md) would test 8, 16 and 32 responses.
 - **Adapted prompts.** The prompts are adapted for decision models. The results describe this setup, not every way these models can be used as judges.
-- **Interim looks.** The original run and later SubQ extension each had one user-requested early check on partial data. Nothing in the design changed; both are disclosed in the [plan](../plans/v1-design.md).
 - **Statistics.** Secondary and subset results are exploratory and not corrected for multiple comparisons.

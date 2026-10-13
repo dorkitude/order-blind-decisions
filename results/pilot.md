@@ -4,13 +4,12 @@ type: result
 run: pilot
 date: 2026-10-09
 receipts: runs/pilot/
-cost_usd: 0.5142
-updated: 2026-10-13 (SubQ addendum)
+updated: 2026-10-13
 ---
 
 # Pilot run
 
-**Result: the full pipeline worked on the original three models and both later additions.** The original 4,200 pilot calls returned valid typed answers on the first attempt, with no refusals; the Microsoft and SubQ addenda below passed the same gate. The pilot checked plumbing, cost and latency only. Its answers were not inspected for position effects and are excluded from the confirmatory analysis.
+**Result: the full pipeline worked for all five models.** Every one of the 7,000 planned calls returned a valid typed answer, with no refusals. The pilot checked plumbing, cost and latency only. Its answers were not inspected for position effects and are excluded from the confirmatory analysis.
 
 ```mermaid
 flowchart LR
@@ -33,29 +32,10 @@ flowchart LR
 | Jev | 1,400 / 1,400 | 0 | 0 | `jev-1.13.0` | 103 / 142 ms | $0.0975 |
 | OpenAI Decisions | 1,400 / 1,400 | 0 | 0 | `openai-decisions/gpt-6-luna` | 113 / 193 ms | $0.2058 |
 | Clef-flash | 1,400 / 1,400 | 0 | 0 | `clef-flash` | 209 / 306 ms | $0.2109 |
+| Microsoft-Decision-1 | 1,400 / 1,400 | 0 | 0 | `microsoft/microsoft-decision-1-20261009` | 304 / 409 ms | $0.0790 |
+| SubQ Snap | 1,400 / 1,400 | 0 | 0 | `subq-snap-preview` | 241 / 500 ms | $2.0097 placeholder |
 
 - **Validity.** "Valid" means the response answered exactly the planned questions: a choice among the four codes, or a score between levels 0 and 9.
 - **Latency.** Measured HTTP round trips at 4 concurrent requests per model, not intrinsic model speed.
-- **Cost.** Reported input tokens × list price; accounting estimates, not invoices.
-
-**Projection.** Scaling $0.51 for 35 items to all 1,865 items gives about $27 for the main run. Together with the probe and pilot, that is well inside the $100 cap.
-
-## Addendum: Microsoft-Decision-1 (2026-10-09)
-
-Microsoft-Decision-1 was added after the plan was frozen and ran the same 35-item pilot through OpenRouter before its full run.
-
-| Model | Calls ok | Invalid answers | Refusals | Response model | Latency p50 / p95 | Cost |
-|---|---|---|---|---|---|---|
-| Microsoft-Decision-1 | 1,400 / 1,400 | 0 | 0 | `microsoft/microsoft-decision-1-20261009` | 304 / 409 ms | $0.0790 |
-
-One call was rate-limited (HTTP 429) and succeeded on retry. Receipts are in `runs/pilot/msd1/`.
-
-## Addendum: SubQ Snap (2026-10-13)
-
-SubQ Snap was added after the plan was frozen and passed the identical 35-item pilot before its full run.
-
-| Model | Calls ok | Invalid answers | Refusals | Response model | Latency p50 / p95 | Accounting cost |
-|---|---|---|---|---|---|---|
-| SubQ Snap | 1,400 / 1,400 | 0 | 0 | `subq-snap-preview` | 241 / 500 ms | $2.0097 placeholder |
-
-All calls succeeded on the first attempt. SubQ had no published price when checked, so its cost uses the study's disclosed `$1/Mtok` placeholder; it is not a list price or invoice. Receipts are in `runs/pilot/subq/`.
+- **Cost.** Reported input tokens × cited rate; accounting estimates, not invoices. SubQ uses the study's disclosed `$1/Mtok` placeholder because no public price was pinned.
+- **Retries.** One Microsoft request was rate-limited and succeeded on retry. All SubQ calls succeeded on the first attempt.

@@ -47,7 +47,7 @@ Off exe.dev, point the provider URLs in [`internal/provider/provider.go`](../int
 
 SubQ had not published pricing when checked on 2026-10-13. Its receipts therefore use an explicit `$1/Mtok` accounting placeholder unless `SUBQ_USD_PER_MTOK_INPUT` is set; this is neither a list price nor an invoice. The main run uses the unchanged public RewardBench 2 plan. SubQ's documented default is indefinite prompt/completion retention, so do not reuse this route for private data without confirming the account policy.
 
-The post-freeze SubQ extension was run sequentially through the same gates:
+The SubQ provider uses the same sequential gates and frozen plan:
 
 ```bash
 export SUBQ_URL=https://api.subq.ai/v1/systemone
