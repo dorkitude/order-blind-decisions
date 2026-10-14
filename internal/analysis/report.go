@@ -17,10 +17,10 @@ const (
 	RatingMargin = 0.25
 )
 
-// Providers in report order; Jev is the reference.
-var Providers = []string{"jev", "decisions", "clef-flash", "msd1", "subq"}
+// Providers in report order; Jev 1.13 is the reference.
+var Providers = []string{"jev", "decisions", "clef-flash", "msd1", "subq", "jev114"}
 
-var label = map[string]string{"jev": "Jev", "decisions": "OpenAI Decisions", "clef-flash": "Clef-flash", "msd1": "Microsoft-Decision-1", "subq": "SubQ Snap"}
+var label = map[string]string{"jev": "Jev 1.13", "decisions": "OpenAI Decisions", "clef-flash": "Clef-flash", "msd1": "Microsoft-Decision-1", "subq": "SubQ Snap", "jev114": "Jev 1.14"}
 
 type endpoint struct {
 	ID, Name, Unit string
@@ -221,11 +221,11 @@ func Report(dbPath, run string) (string, error) {
 	}
 	w("\nChoice endpoints use the %s items with exactly one correct response (standard subsets and Ties `ref`). Rubric endpoints use all items. Choice: a refusal or invalid answer counts as not choosing the correct response.\n\n", fmt.Sprint(res["P1"][present[0]].e.Items))
 
-	// Paired differences from Jev.
+	// Paired differences from Jev 1.13.
 	if len(present) > 1 && present[0] == "jev" {
-		w("## Compared with Jev\n\nThe same endpoints as differences from Jev (model − Jev), on the same items and the same bootstrap resamples.\n\n| Endpoint |")
+		w("## Compared with Jev 1.13\n\nThe same endpoints as differences from Jev 1.13 (model − Jev 1.13), on the same items and the same bootstrap resamples.\n\n| Endpoint |")
 		for _, p := range present[1:] {
-			w(" %s − Jev |", label[p])
+			w(" %s − Jev 1.13 |", label[p])
 		}
 		w("\n|---|")
 		for range present[1:] {
@@ -319,9 +319,9 @@ func curves(db *sql.DB, b *strings.Builder, run string, present []string) error 
 		rows.Close()
 		acc[p], rat[p] = a, r
 	}
-	palette := []string{"#2f6fdf", "#d9480f", "#2b8a3e", "#7048e8", "#1098ad"}
+	palette := []string{"#2f6fdf", "#d9480f", "#2b8a3e", "#7048e8", "#1098ad", "#e8590c"}
 	colors := strings.Join(palette[:len(present)], ", ")
-	colorNames := []string{"blue", "orange", "green", "purple", "cyan"}
+	colorNames := []string{"blue", "orange", "green", "purple", "cyan", "red-orange"}
 	var names []string
 	for i, p := range present {
 		names = append(names, label[p]+" "+colorNames[i])
@@ -570,7 +570,7 @@ func operations(db *sql.DB, b *strings.Builder, run string, present []string) er
 		}
 		w("| %s | %d | %d | %d | %d | %d | $%.2f | $%.2f | %.0f / %.0f ms |\n", label[p], ok, att, limited, refused, tok, cost, guard, 1000*p50, 1000*p95)
 	}
-	w("\n- **Accounting cost** prices the input tokens each provider reported for successful calls. Jev and Microsoft-Decision-1 use $0.042/M, Decisions $0.10/M, Clef-flash $0.09/M, and SubQ Snap $0.05/M. These are list-price estimates, not invoices.\n")
+	w("\n- **Accounting cost** prices the input tokens each provider reported for successful calls. Jev 1.13, Jev 1.14 and Microsoft-Decision-1 use $0.042/M, Decisions $0.10/M, Clef-flash $0.09/M, and SubQ Snap $0.05/M. These are list-price estimates, not invoices.\n")
 	w("- **Budget-guard tally** is what the run's spending cap counted. It also charges every rejected or failed call that came back without usage at its estimated size, so it deliberately overstates spend.\n")
 	var limitedNames []string
 	for _, p := range present {

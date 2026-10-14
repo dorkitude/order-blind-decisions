@@ -1,7 +1,7 @@
 ---
 title: Reproducing the study
 type: runbook
-updated: 2026-10-09
+updated: 2026-10-14
 ---
 
 # Reproducing the study
@@ -37,7 +37,8 @@ go build -o order-blind .
 
 | Provider | Route | Needs |
 |---|---|---|
-| Jev | `https://typesafe.int.exe.xyz/v1/systemone` | an exe.dev `typesafe` integration (injects the key) |
+| Jev 1.13 (`jev`) | `https://typesafe.int.exe.xyz/v1/systemone` | an exe.dev `typesafe` integration (injects the key) |
+| Jev 1.14 (`jev114`) | same as Jev 1.13; sends the pinned model `jev-1.14.0` and rejects answers from any other model | an exe.dev `typesafe` integration |
 | OpenAI Decisions | `https://openai.int.exe.xyz/v1/decisions` | an exe.dev `openai` integration |
 | Clef-flash | Cloudflare Workers AI REST API | `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` (Workers AI Read is enough) |
 | Microsoft-Decision-1 (`msd1`) | OpenRouter decisions API, `https://openrouter.int.exe.xyz/api/alpha/decisions` | an exe.dev `openrouter` integration (injects the key); off exe.dev, `https://openrouter.ai/api/alpha/decisions` with an OpenRouter key |
@@ -55,4 +56,12 @@ export SUBQ_API_KEY=... # environment only; never committed
 ./order-blind probe --providers subq --provider-workers subq=4 --budget 250 --live
 ./order-blind run --run pilot --pilot-per-kind 5 --providers subq --provider-workers subq=4 --budget 250 --live
 ./order-blind run --run main --providers subq --provider-workers subq=4 --budget 250 --live
+```
+
+Jev 1.14 runs the same gates against the same frozen plan. The `jev114` provider swaps only the body's `model` field to `jev-1.14.0`; each receipt records both the frozen `body_sha256` and the `sent_sha256` of the bytes actually sent:
+
+```bash
+./order-blind probe --providers jev114 --live
+./order-blind run --run pilot --pilot-per-kind 5 --providers jev114 --provider-workers jev114=4 --live
+./order-blind run --run main --providers jev114 --provider-workers jev114=8 --live
 ```

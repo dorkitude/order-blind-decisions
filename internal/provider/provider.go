@@ -11,6 +11,8 @@
 //   - subq: SubQ Snap through SubQ's System One API (Jev-shaped request and
 //     response). The exe.dev integration is the default; a direct route reads
 //     SUBQ_API_KEY from the environment only.
+//   - jev114: Jev 1.14 (pinned "jev-1.14.0") on the same route as jev; a
+//     response from any other model is treated as a failed call.
 //   - clef-flash: Cloudflare Workers AI, which accepts Jev's body directly and
 //     wraps the answer in {"result": …, "success": …}. Needs
 //     CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN in the environment.
@@ -61,7 +63,7 @@ type Provider interface {
 }
 
 // Names lists the providers in study order; Jev is the reference.
-var Names = []string{"jev", "decisions", "clef-flash", "msd1", "subq"}
+var Names = []string{"jev", "decisions", "clef-flash", "msd1", "subq", "jev114"}
 
 const (
 	subqIntegrationURL = "https://subq.int.exe.xyz/v1/systemone"
@@ -75,6 +77,8 @@ func New(name string) (Provider, error) {
 	switch name {
 	case "jev":
 		return jev{url: "https://typesafe.int.exe.xyz/v1/systemone", model: "jev-1.13.0"}, nil
+	case "jev114":
+		return jev114{url: "https://typesafe.int.exe.xyz/v1/systemone", model: "jev-1.14.0"}, nil
 	case "decisions":
 		return openai{c: decisions.Client{Endpoint: "https://openai.int.exe.xyz/v1/decisions", Model: decisions.DefaultModel}}, nil
 	case "msd1":
@@ -179,6 +183,25 @@ func (p jev) Do(ctx context.Context, body []byte) (Result, error) {
 	r, err := post(ctx, p.url, "", body)
 	if err == nil && r.Status == http.StatusOK {
 		fill(&r, r.Raw)
+	}
+	return r, err
+}
+
+// jev114 sends the pinned id "jev-1.14.0" (the jev-latest alias still
+// resolves to 1.13.0) and rejects answers from any other model.
+type jev114 struct{ url, model string }
+
+func (p jev114) Name() string             { return "jev114" }
+func (p jev114) BodyModel() string        { return p.model }
+func (p jev114) USDPerMTokInput() float64 { return 0.042 }
+func (p jev114) Do(ctx context.Context, body []byte) (Result, error) {
+	r, err := post(ctx, p.url, "", body)
+	if err == nil && r.Status == http.StatusOK {
+		fill(&r, r.Raw)
+		if r.ParseError == "" && r.ResponseModel != p.model {
+			r.ParseError = fmt.Sprintf("unexpected model %q", r.ResponseModel)
+			r.Normalized = nil
+		}
 	}
 	return r, err
 }

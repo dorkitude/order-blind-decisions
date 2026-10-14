@@ -4,12 +4,12 @@ type: result
 run: probe
 date: 2026-10-09
 receipts: runs/probe/
-updated: 2026-10-13
+updated: 2026-10-14
 ---
 
 # Truncation probe
 
-**Result: none of the five models truncated the request state at any tested length, up to about 9,700 input tokens.** The largest v1 request (24.3 KB) is smaller than the largest probe request (about 32 KB of state), so v1 requests are read in full.
+**Result: none of the six model arms truncated the request state at any tested length, up to about 9,700 input tokens.** The largest v1 request (24.3 KB) is smaller than the largest probe request (about 32 KB of state), so v1 requests are read in full.
 
 ## Why it was run
 
@@ -34,13 +34,14 @@ Each provider received 28 requests: seven target lengths, start and end placemen
 
 | Model | Needles found | Reported input tokens, shortest → longest | Cost |
 |---|---:|---:|---:|
-| Jev | 28/28 | 1,004 → 9,608 | $0.0052 |
+| Jev 1.13 | 28/28 | 1,004 → 9,608 | $0.0052 |
+| Jev 1.14 | 28/28 | 1,004 → 9,608 | $0.0052 |
 | OpenAI Decisions | 28/28 | 681 → 7,881 | $0.0100 |
 | Clef-flash | 28/28 | 847 → 9,739 | $0.0111 |
 | Microsoft-Decision-1 | 28/28 | 729 → 9,621 | $0.0050 |
 | SubQ Snap | 28/28 | 795 → 9,687 | $0.0061 |
 
-- **Calls.** All 140 calls succeeded; every SubQ probe call succeeded on the first attempt.
+- **Calls.** All 168 calls succeeded; every SubQ and Jev 1.14 probe call succeeded on the first attempt.
 - **Token counts.** Reported input tokens grow linearly with length for every provider, so none is capping what it counts.
 - **Cost.** Reported tokens × published list rate; accounting estimates, not invoices.
 - **Latency.** SubQ round-trip latency was 285 / 356 ms p50 / p95.

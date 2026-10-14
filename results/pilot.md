@@ -4,12 +4,12 @@ type: result
 run: pilot
 date: 2026-10-09
 receipts: runs/pilot/
-updated: 2026-10-13
+updated: 2026-10-14
 ---
 
 # Pilot run
 
-**Result: the full pipeline worked for all five models.** Every one of the 7,000 planned calls returned a valid typed answer, with no refusals. The pilot checked plumbing, cost and latency only. Its answers were not inspected for position effects and are excluded from the confirmatory analysis.
+**Result: the full pipeline worked for all six model arms.** Every one of the 8,400 planned calls returned a valid typed answer, with no refusals. The pilot checked plumbing, cost and latency only. Its answers were not inspected for position effects and are excluded from the confirmatory analysis.
 
 ```mermaid
 flowchart LR
@@ -29,7 +29,8 @@ flowchart LR
 
 | Model | Calls ok | Invalid answers | Refusals | Response model | Latency p50 / p95 | Cost |
 |---|---|---|---|---|---|---|
-| Jev | 1,400 / 1,400 | 0 | 0 | `jev-1.13.0` | 103 / 142 ms | $0.0975 |
+| Jev 1.13 | 1,400 / 1,400 | 0 | 0 | `jev-1.13.0` | 103 / 142 ms | $0.0975 |
+| Jev 1.14 | 1,400 / 1,400 | 0 | 0 | `jev-1.14.0` | 74 / 91 ms | $0.0975 |
 | OpenAI Decisions | 1,400 / 1,400 | 0 | 0 | `openai-decisions/gpt-6-luna` | 113 / 193 ms | $0.2058 |
 | Clef-flash | 1,400 / 1,400 | 0 | 0 | `clef-flash` | 209 / 306 ms | $0.2109 |
 | Microsoft-Decision-1 | 1,400 / 1,400 | 0 | 0 | `microsoft/microsoft-decision-1-20261009` | 304 / 409 ms | $0.0790 |
@@ -38,4 +39,4 @@ flowchart LR
 - **Validity.** "Valid" means the response answered exactly the planned questions: a choice among the four codes, or a score between levels 0 and 9.
 - **Latency.** Measured HTTP round trips at 4 concurrent requests per model, not intrinsic model speed.
 - **Cost.** Reported input tokens × published list rate; accounting estimates, not invoices.
-- **Retries.** One Microsoft request was rate-limited and succeeded on retry. All SubQ calls succeeded on the first attempt.
+- **Retries.** One Microsoft request was rate-limited and succeeded on retry. All SubQ and Jev 1.14 calls succeeded on the first attempt.

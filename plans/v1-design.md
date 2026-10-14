@@ -35,6 +35,7 @@ All are publishable; this repository is public.
 | Model | Role | Route | Input price |
 |---|---|---|---|
 | Jev `jev-1.13.0` | reference and baseline | `POST https://typesafe.int.exe.xyz/v1/systemone` (exe.dev integration) | $0.042/M |
+| Jev 1.14 `jev-1.14.0` | compared with Jev 1.13 | same route as Jev 1.13, version pinned in the body (`jev-latest` still resolved to 1.13.0) | $0.042/M |
 | OpenAI Decisions `gpt-6-luna` | compared with Jev | `POST https://openai.int.exe.xyz/v1/decisions` (exe.dev integration), Jev body translated by the provider-openai-decisions adapter | $0.10/M |
 | Cloudflare Clef-flash `clef-flash` | compared with Jev | `POST https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/cloudflare/clef-flash`, bearer `CLOUDFLARE_API_TOKEN`, Jev-compatible body | $0.09/M |
 | Microsoft-Decision-1 `microsoft/microsoft-decision-1` | compared with Jev | `POST https://openrouter.int.exe.xyz/api/alpha/decisions` (exe.dev OpenRouter integration), Jev-compatible body and response | $0.042/M |
@@ -124,7 +125,7 @@ This section fixes the analysis before any main-run outcome exists. Pilot receip
 - **Verdict.** A model is **order-blind** only if all four primary CIs lie inside their margins. It is **position-biased** if any CI lies entirely outside its margin. Otherwise it is **inconclusive**.
 - **Paired comparisons with Jev.** The same endpoints are reported for every non-reference provider minus Jev, using the same item resamples.
 
-**Protocol consistency.** Every provider receives the identical `frozen/v1` plan and passes the same truncation probe and excluded pilot before its 76,200-request study. Provider availability does not affect hashes, endpoints, margins, bootstrap or the verdict rule. SubQ's public RewardBench 2 inputs are compatible with its documented default retention policy; that policy is not appropriate for private data without account-level confirmation.
+**Protocol consistency.** Every provider receives the identical `frozen/v1` plan and passes the same truncation probe and excluded pilot before its 76,200-request study. Provider availability does not affect hashes, endpoints, margins, bootstrap or the verdict rule. Jev 1.14 was released on 2026-10-14, after the freeze; it received the identical frozen bodies with only the `model` field changed, and its receipts record both the frozen body hash and the hash of the bytes sent. SubQ's public RewardBench 2 inputs are compatible with its documented default retention policy; that policy is not appropriate for private data without account-level confirmation.
 
 **Secondary endpoints** are descriptive, with no verdict:
 
