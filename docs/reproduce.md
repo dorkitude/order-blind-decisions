@@ -43,10 +43,18 @@ go build -o order-blind .
 | Clef-flash | Cloudflare Workers AI REST API | `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` (Workers AI Read is enough) |
 | Microsoft-Decision-1 (`msd1`) | OpenRouter decisions API, `https://openrouter.int.exe.xyz/api/alpha/decisions` | an exe.dev `openrouter` integration (injects the key); off exe.dev, `https://openrouter.ai/api/alpha/decisions` with an OpenRouter key |
 | SubQ Snap (`subq`) | `https://subq.int.exe.xyz/v1/systemone` | an exe.dev `subq` integration; off exe.dev, set `SUBQ_URL=https://api.subq.ai/v1/systemone` and `SUBQ_API_KEY` in the environment |
+| [Rune](https://fireworks.ai/models/fireworks/rune) (Fireworks System One, `accounts/fireworks/routers/rune`) (`rune`) | `https://fireworks.int.exe.xyz/inference/v1/systemone` | an exe.dev `fireworks` integration (injects the key); off exe.dev, point `runeRoute` in `provider.go` at `https://api.fireworks.ai/inference/v1/systemone` and supply a Fireworks key |
 
 Off exe.dev, point the provider URLs in [`internal/provider/provider.go`](../internal/provider/provider.go) at the direct APIs and supply keys.
 
 SubQ Snap's [published list price](https://docs.subq.ai/using-the-api/models/) is $0.05 per million input tokens, with output free. `SUBQ_USD_PER_MTOK_INPUT` can pin an attributable override. The main run uses the public RewardBench 2 plan. SubQ's documented default is indefinite prompt/completion retention, so do not reuse this route for private data without confirming the account policy.
+
+Rune's accounting rate is $0.042 per million input tokens with output free, the same as Jev; costs are list-price estimates, not invoices. The `rune` provider sends Jev's body with only `model` changed to `accounts/fireworks/routers/rune`, rejects an answer from any other model, and records HTTP 400 "exceeds limit 16384" as a non-retryable failure. It runs the same gates against the same frozen plan:
+
+```bash
+./order-blind run --run pilot --pilot-per-kind 5 --providers rune --workers 4 --budget 15 --live
+./order-blind run --run main --providers rune --workers 4 --budget 15 --live
+```
 
 The SubQ provider uses the same sequential gates and frozen plan:
 

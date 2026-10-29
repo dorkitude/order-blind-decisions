@@ -13,6 +13,12 @@
 //     SUBQ_API_KEY from the environment only.
 //   - jev114: Jev 1.14 (pinned "jev-1.14.0") on the same route as jev; a
 //     response from any other model is treated as a failed call.
+//   - rune: Rune (https://fireworks.ai/models/fireworks/rune), Fireworks System
+//     One, model accounts/fireworks/routers/rune, through the exe.dev
+//     "fireworks" integration, which injects the key. It accepts Jev's body as
+//     is, with only the model name changed. Bodies over 16,384 tokens are
+//     rejected with HTTP 400; the runner records that as a non-retryable
+//     failure. A response from any other model is treated as a failed call.
 //   - clef-flash: Cloudflare Workers AI, which accepts Jev's body directly and
 //     wraps the answer in {"result": …, "success": …}. Needs
 //     CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN in the environment.
@@ -63,7 +69,7 @@ type Provider interface {
 }
 
 // Names lists the providers in study order; Jev is the reference.
-var Names = []string{"jev", "decisions", "clef-flash", "msd1", "subq", "jev114"}
+var Names = []string{"jev", "decisions", "clef-flash", "msd1", "subq", "jev114", "rune"}
 
 const (
 	subqIntegrationURL = "https://subq.int.exe.xyz/v1/systemone"
@@ -79,6 +85,8 @@ func New(name string) (Provider, error) {
 		return jev{url: "https://typesafe.int.exe.xyz/v1/systemone", model: "jev-1.13.0"}, nil
 	case "jev114":
 		return jev114{url: "https://typesafe.int.exe.xyz/v1/systemone", model: "jev-1.14.0"}, nil
+	case "rune":
+		return runeRoute{url: "https://fireworks.int.exe.xyz/inference/v1/systemone", model: "accounts/fireworks/routers/rune"}, nil
 	case "decisions":
 		return openai{c: decisions.Client{Endpoint: "https://openai.int.exe.xyz/v1/decisions", Model: decisions.DefaultModel}}, nil
 	case "msd1":
@@ -195,6 +203,26 @@ func (p jev114) Name() string             { return "jev114" }
 func (p jev114) BodyModel() string        { return p.model }
 func (p jev114) USDPerMTokInput() float64 { return 0.042 }
 func (p jev114) Do(ctx context.Context, body []byte) (Result, error) {
+	r, err := post(ctx, p.url, "", body)
+	if err == nil && r.Status == http.StatusOK {
+		fill(&r, r.Raw)
+		if r.ParseError == "" && r.ResponseModel != p.model {
+			r.ParseError = fmt.Sprintf("unexpected model %q", r.ResponseModel)
+			r.Normalized = nil
+		}
+	}
+	return r, err
+}
+
+// runeRoute is Rune (Fireworks System One) through the exe.dev "fireworks"
+// integration. It takes Jev's body and returns Jev's answer shape, so only the
+// model name changes; an answer from any other model is a failed call.
+type runeRoute struct{ url, model string }
+
+func (p runeRoute) Name() string             { return "rune" }
+func (p runeRoute) BodyModel() string        { return p.model }
+func (p runeRoute) USDPerMTokInput() float64 { return 0.042 }
+func (p runeRoute) Do(ctx context.Context, body []byte) (Result, error) {
 	r, err := post(ctx, p.url, "", body)
 	if err == nil && r.Status == http.StatusOK {
 		fill(&r, r.Raw)

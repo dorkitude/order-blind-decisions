@@ -40,6 +40,7 @@ All are publishable; this repository is public.
 | Cloudflare Clef-flash `clef-flash` | compared with Jev | `POST https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/cloudflare/clef-flash`, bearer `CLOUDFLARE_API_TOKEN`, Jev-compatible body | $0.09/M |
 | Microsoft-Decision-1 `microsoft/microsoft-decision-1` | compared with Jev | `POST https://openrouter.int.exe.xyz/api/alpha/decisions` (exe.dev OpenRouter integration), Jev-compatible body and response | $0.042/M |
 | SubQ Snap `subq-snap-preview` | compared with Jev | `POST https://api.subq.ai/v1/systemone`, Jev-compatible body and response | [$0.05/M input; output free](https://docs.subq.ai/using-the-api/models/) |
+| [Rune](https://fireworks.ai/models/fireworks/rune) (Fireworks System One, `accounts/fireworks/routers/rune`) | compared with Jev | `POST https://fireworks.int.exe.xyz/inference/v1/systemone` (exe.dev Fireworks integration; the key is injected at the network edge), Jev-compatible body and response with only `model` changed | $0.042/M input; output free |
 
 Full Clef (27B) is out of scope on cost. Public docs describe Clef-flash and Decisions as "Jev-compatible decision models."
 
@@ -125,7 +126,7 @@ This section fixes the analysis before any main-run outcome exists. Pilot receip
 - **Verdict.** A model is **order-blind** only if all four primary CIs lie inside their margins. It is **position-biased** if any CI lies entirely outside its margin. Otherwise it is **inconclusive**.
 - **Paired comparisons with Jev.** The same endpoints are reported for every non-reference provider minus Jev, using the same item resamples.
 
-**Protocol consistency.** Every provider receives the identical `frozen/v1` plan and passes the same truncation probe and excluded pilot before its 76,200-request study. Provider availability does not affect hashes, endpoints, margins, bootstrap or the verdict rule. Jev 1.14 was released on 2026-10-14, after the freeze; it received the identical frozen bodies with only the `model` field changed, and its receipts record both the frozen body hash and the hash of the bytes sent. SubQ's public RewardBench 2 inputs are compatible with its documented default retention policy; that policy is not appropriate for private data without account-level confirmation.
+**Protocol consistency.** Every provider receives the identical `frozen/v1` plan and passes the same truncation probe and excluded pilot before its 76,200-request study. Provider availability does not affect hashes, endpoints, margins, bootstrap or the verdict rule. Jev 1.14 was released on 2026-10-14, after the freeze; it received the identical frozen bodies with only the `model` field changed, and its receipts record both the frozen body hash and the hash of the bytes sent. Rune received the identical frozen bodies with only the `model` field changed (`accounts/fireworks/routers/rune`), passed the same excluded pilot (1,400/1,400), and answered all 76,200 requests; it was not run through the truncation probe, and its longest request (5,568 reported tokens) is far below the 16,384-token request limit observed for it. SubQ's public RewardBench 2 inputs are compatible with its documented default retention policy; that policy is not appropriate for private data without account-level confirmation.
 
 **Secondary endpoints** are descriptive, with no verdict:
 

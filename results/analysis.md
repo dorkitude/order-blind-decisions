@@ -3,7 +3,7 @@ title: "Analysis: are decision models order-blind?"
 type: analysis
 run: main
 date: 2026-10-09
-updated: 2026-10-14
+updated: 2026-10-29
 author: Kyle Wild
 data: results/main-report.md (generated), runs/main/ (receipts)
 tags: [primacy, recency, serial-position, decision-models, rewardbench-2]
@@ -11,12 +11,12 @@ tags: [primacy, recency, serial-position, decision-models, rewardbench-2]
 
 # Analysis: are decision models order-blind?
 
-**Short answer:** Jev is, on the frozen test, in both versions tested (Jev 1.13 and Jev 1.14). OpenAI Decisions and SubQ Snap are not: both favor whatever comes first. Microsoft-Decision-1 is not either: it disfavors whatever comes last. Clef-flash is inconclusive, and it is far less accurate than the others.
+**Short answer:** Jev is, on the frozen test, in both versions tested (Jev 1.13 and Jev 1.14). OpenAI Decisions, SubQ Snap and [Rune](https://fireworks.ai/models/fireworks/rune) (Fireworks System One, `accounts/fireworks/routers/rune`) are not: all three favor whatever comes first. Microsoft-Decision-1 is not either: it disfavors whatever comes last. Clef-flash is inconclusive, and it is far less accurate than the others.
 
 Two exploratory caveats apply even to Jev:
 
-- **Exact ties.** When two answers are equally correct, both Jev versions, Decisions, Clef-flash, and SubQ usually pick the one shown first. Microsoft-Decision-1 is the exception, at close to 50/50.
-- **Math.** All six model arms show primacy on RewardBench 2's Math subset.
+- **Exact ties.** When two answers are equally correct, both Jev versions, Decisions, Clef-flash, SubQ, and Rune usually pick the one shown first. Microsoft-Decision-1 is the exception, at close to 50/50.
+- **Math.** All seven model arms show primacy on RewardBench 2's Math subset.
 
 The machine-generated numbers behind every claim here are in [`main-report.md`](main-report.md). The design, endpoints and verdict rule were frozen in [`../plans/v1-design.md`](../plans/v1-design.md) before the main run.
 
@@ -32,10 +32,10 @@ flowchart LR
     P --> A
     A --> H[response order<br/>4 Williams orderings]
     A --> Q[question order<br/>4 Williams orderings]
-    H --> X[× 2 identical repeats<br/>× 6 model arms]
+    H --> X[× 2 identical repeats<br/>× 7 model arms]
     Q --> X
     S --> X
-    X --> R[457,200 requests<br/>all answered]
+    X --> R[533,400 requests<br/>all answered]
 ```
 
 - **Data.** Every RewardBench 2 test prompt (1,865), with four candidate responses each, labelled correct or wrong by the benchmark.
@@ -46,11 +46,12 @@ flowchart LR
   - Cloudflare Clef-flash (`clef-flash`)
   - Microsoft-Decision-1 (`microsoft/microsoft-decision-1` via OpenRouter)
   - SubQ Snap (`subq-snap-preview`)
+  - Rune (`accounts/fireworks/routers/rune`)
 - **Formats.** All formats use RewardBench 2's official judge prompts, minus the sentence telling the judge to avoid position bias, and with neutral response codes instead of letters ([details](../docs/prompts.md)).
 - **Ordering arms.**
   - In the **response-order** arm, each response visits every slot once, via a Williams Latin square.
   - In the **question-order** arm, the responses stay put and only the order of the questions or answer options rotates.
-- **Scale.** 457,200 required requests in total, 100% answered. The estimated main-study cost was **$57.37** at published list rates. SubQ Snap accounted for $7.35 of that total and Jev 1.14 for $6.94.
+- **Scale.** 533,400 required requests in total, 100% answered. The estimated main-study cost was **$63.15** at list rates (sum of the per-arm accounting costs). SubQ Snap accounted for $7.35 of that total, Jev 1.14 for $6.94 and Rune for $6.40.
 
 ## Verdicts
 
@@ -62,6 +63,7 @@ flowchart LR
 | **Clef-flash** | 🟨 inconclusive | 62.7% | −2.1 pp [−3.5, −0.8] | +1.9 pp [+0.8, +3.0] | +0.08 / +0.12 |
 | **Microsoft-Decision-1** | 🟥 **position-biased** | 70.9% | +1.0 pp [−0.2, +2.2] | **−4.5 pp [−5.6, −3.4]** | +0.09 / −0.08 |
 | **SubQ Snap** | 🟥 **position-biased** | 78.5% | **+7.0 pp [+6.1, +8.0]** | +0.5 pp [−0.4, +1.4] | +0.011 / +0.008 |
+| **Rune** | 🟥 **position-biased** | 69.7% | **+4.8 pp [+3.6, +6.0]** | −2.1 pp [−3.2, −1.0] | **+0.40** / −0.24 |
 
 - **Intervals.** Brackets are 90% cluster-bootstrap intervals over items.
 - **Margins.** Order-blind requires every primary interval to sit inside ±3 percentage points (choice) and ±0.25 rating points on the 1–10 scale.
@@ -69,13 +71,14 @@ flowchart LR
 - **Why Clef-flash is inconclusive.** Its choice primacy interval crosses −3 pp: slot 1 is slightly *disfavored*.
 - **Why Microsoft-Decision-1 is not order-blind.** Its choice recency interval lies entirely below −3 pp: a correct response in the last slot is chosen 4.5 points *less* often than in the middle. This is an anti-recency effect, not the usual recency.
 - **Why SubQ is not order-blind.** Its choice primacy interval lies entirely above +3 pp. Its rubric-score effects are small and inside the ±0.25 margin, so its failure is specifically in choosing the winner.
+- **Why Rune is not order-blind.** Its choice primacy interval lies entirely above +3 pp ([+3.6, +6.0]) and its rubric primacy interval lies entirely above +0.25 ([+0.383, +0.421]). Its two recency intervals each straddle a margin (choice −2.1 pp [−3.2, −1.0]; rating −0.244 [−0.257, −0.231]), so they are inconclusive rather than failing.
 
 ## The serial-position curves
 
 Murdock (1962) found that people remember the first and last items of a list best. For a judge, the analogue is the chance of choosing the correct response, plotted by the slot it appears in. A flat line is order-blind.
 
 ```mermaid
-%%{init: {"themeVariables": {"xyChart": {"plotColorPalette": "#2f6fdf, #d9480f, #2b8a3e, #7048e8, #1098ad, #e8590c"}}}}%%
+%%{init: {"themeVariables": {"xyChart": {"plotColorPalette": "#2f6fdf, #d9480f, #2b8a3e, #7048e8, #1098ad, #e8590c, #c2255c"}}}}%%
 xychart-beta
     title "Correct answer chosen, by its slot"
     x-axis "Slot of the correct response" [1, 2, 3, 4]
@@ -86,9 +89,10 @@ xychart-beta
     line [0.722, 0.744, 0.681, 0.667]
     line [0.840, 0.773, 0.766, 0.774]
     line [0.805, 0.835, 0.808, 0.816]
+    line [0.741, 0.705, 0.680, 0.671]
 ```
 
-*Lines: Jev 1.13 blue, OpenAI Decisions orange, Clef-flash green, Microsoft-Decision-1 purple, SubQ Snap cyan, Jev 1.14 red-orange.*
+*Lines: Jev 1.13 blue, OpenAI Decisions orange, Clef-flash green, Microsoft-Decision-1 purple, SubQ Snap cyan, Jev 1.14 red-orange, Rune magenta.*
 
 | Model | Slot 1 | Slot 2 | Slot 3 | Slot 4 | Share of picks landing in slot 1 (25% is fair) |
 |---|---|---|---|---|---|
@@ -98,12 +102,14 @@ xychart-beta
 | Clef-flash | 60.8% | 65.3% | 60.7% | 64.9% | 24.3% |
 | Microsoft-Decision-1 | 72.2% | 74.4% | 68.1% | **66.7%** | 26.9% |
 | SubQ Snap | **84.0%** | 77.3% | 76.6% | 77.4% | 29.4% |
+| Rune | **74.1%** | 70.5% | 68.0% | 67.1% | 28.6% |
 
 - **Both Jev lines are flat**, with no rise at either end. Jev 1.14's slot 1 sits about a point below its middle slots.
 - **Decisions' line starts high and drops.** That is primacy, and it is about six points stronger than Jev's (Decisions − Jev 1.13: **+5.8 pp [+4.3, +7.4]**).
 - **Clef-flash's line zigzags**, with slots 2 and 4 above 1 and 3. That is neither a clean primacy nor a clean recency pattern.
 - **Microsoft-Decision-1's line slopes down.** The first two slots do best and the last does worst. Its picks land in slots 1–4 at 26.9 · 26.9 · 23.2 · 22.9%.
 - **SubQ's line starts high and then flattens.** Its +7.0 pp primacy is slightly larger than Decisions' choice effect, while its rating curve remains essentially flat.
+- **Rune's line slopes steadily down.** Slot 1 is best (74.1%) and slot 4 worst (67.1%), a seven-point drop with no bounce at the end. Its picks land in slots 1–4 at 28.6 · 24.7 · 23.4 · 23.2%.
 
 ## Findings
 
@@ -165,11 +171,11 @@ Jev 1.14 (`jev-1.14.0`) received the same 76,200 request bodies as Jev 1.13, wit
 
 **Microsoft's claim.** Microsoft's [announcement](https://commandline.microsoft.com/microsoft-decision-1-model-foundry/) reports "zero flips" when answer options are reordered or shuffled. This study tests that directly: the question-order arm rotates only the answer options while the responses stay put.
 
-| Pick changed across the 4 orderings (share of item × repeat sets) | Jev 1.13 | Jev 1.14 | OpenAI Decisions | Clef-flash | Microsoft-Decision-1 | SubQ Snap |
-|---|---|---|---|---|---|---|
-| Answer options reordered (question-order arm) | 6.0% | 6.4% | 21.8% | 2.5% | **5.1%** | 14.0% |
-| Responses reordered (response-order arm) | 20.8% | 19.3% | 34.6% | 35.5% | **31.9%** | 21.8% |
-| Retest noise: identical requests disagree | 2.1% | 2.3% | 0.0% | 1.4% | 2.6% | 0.1% |
+| Pick changed across the 4 orderings (share of item × repeat sets) | Jev 1.13 | Jev 1.14 | OpenAI Decisions | Clef-flash | Microsoft-Decision-1 | SubQ Snap | Rune |
+|---|---|---|---|---|---|---|---|
+| Answer options reordered (question-order arm) | 6.0% | 6.4% | 21.8% | 2.5% | **5.1%** | 14.0% | 7.8% |
+| Responses reordered (response-order arm) | 20.8% | 19.3% | 34.6% | 35.5% | **31.9%** | 21.8% | 31.3% |
+| Retest noise: identical requests disagree | 2.1% | 2.3% | 0.0% | 1.4% | 2.6% | 0.1% | 3.4% |
 
 - **Options reordered: not zero, but close to noise.** Reordering the answer options changed Microsoft-Decision-1's pick in 5.1% of sets. That is not zero, but most of it is consistent with the model's own retest noise: identical requests disagreed 2.6% of the time, and each set compares four orderings.
 - **Responses reordered: far from zero.** Moving the responses themselves changed its pick in **31.9%** of sets.
@@ -182,18 +188,29 @@ Jev 1.14 (`jev-1.14.0`) received the same 76,200 request bodies as Jev 1.13, wit
 - **It is stable but order-sensitive.** Identical repeats agree 99.9%, while changing response order changes the winner in 21.8% of item/repeat sets. Reordering only answer options changes it in 14.0%.
 - **It never refused or malformed an answer.** Accuracy is 78.5%, behind only the two Jev versions in this comparison.
 
-### 7. Exact ties: five of six model arms break them by position (secondary)
+### 7. Rune has choice and rating primacy, and its ratings fall by slot
 
-For RewardBench 2's Ties prompts with two equally correct answers (for example "Monday" and "Friday" for *"Select a random day of the week"*), an order-blind judge would pick the earlier-shown one 50% of the time. Five of the six model arms favor it:
+[Rune](https://fireworks.ai/models/fireworks/rune) (Fireworks System One, `accounts/fireworks/routers/rune`) received the same 76,200 request bodies as the other arms, with only the model field changed. Every response reported `accounts/fireworks/routers/rune`.
+
+- **The first response wins too often.** The correct answer is chosen 74.1% of the time in slot 1 against 67.1–70.5% in the other slots: +4.8 pp primacy [+3.6, +6.0], and +4.6 pp [+3.2, +6.0] against Jev 1.13. Its picks land in slot 1 28.6% of the time.
+- **Its rubric ratings slope down by slot.** Mean packed ratings are 6.05, 5.75, 5.56 and 5.41 for slots 1–4. Rubric primacy is +0.402 [+0.383, +0.421] and rubric recency −0.244 [−0.257, −0.231], the largest rubric effects of the seven arms. Against the same response rated alone, a response scores −0.03 in slot 1 and −0.68 in slot 4.
+- **Question order does not matter.** With the responses held in place, rotating the answer options or the rating questions moves its choices by at most 0.1 pp and its ratings by at most 0.006 points. Its bias comes from where a response sits in `state`.
+- **It is less accurate than the Jev, Decisions and SubQ arms** (69.7%), above Clef-flash (62.7%) and close to Microsoft-Decision-1 (70.9%). A less accurate judge has more uncertain items, where position can tip the choice, so some of the primacy may reflect uncertainty rather than a fixed preference for slot 1.
+- **It is less repeatable than the others.** Identical repeats give the same choice 96.6% of the time (Jev 1.13: 97.9%) and ratings drift 0.191 points between repeats, so a single call can differ from the average the endpoints report.
+- **It never refused.** All 76,200 requests were answered with a valid typed answer.
+
+### 8. Exact ties: six of seven model arms break them by position (secondary)
+
+For RewardBench 2's Ties prompts with two equally correct answers (for example "Monday" and "Friday" for *"Select a random day of the week"*), an order-blind judge would pick the earlier-shown one 50% of the time. Six of the seven model arms favor it:
 
 ```mermaid
 %%{init: {"themeVariables": {"xyChart": {"plotColorPalette": "#2f6fdf, #868e96"}}}}%%
 xychart-beta
     title "Exact ties: how often the earlier correct answer wins"
-    x-axis ["Jev 1.13", "Jev 1.14", "OpenAI Decisions", "Clef-flash", "Microsoft-Decision-1", "SubQ Snap"]
+    x-axis ["Jev 1.13", "Jev 1.14", "OpenAI Decisions", "Clef-flash", "Microsoft-Decision-1", "SubQ Snap", "Rune"]
     y-axis "Share of tie choices (%)" 0 --> 100
-    bar [71.5, 64.0, 88.6, 69.1, 52.8, 68.1]
-    line [50, 50, 50, 50, 50, 50]
+    bar [71.5, 64.0, 88.6, 69.1, 52.8, 68.1, 64.0]
+    line [50, 50, 50, 50, 50, 50, 50]
 ```
 
 *Bars: share of tie choices that went to the earlier-shown correct answer. Grey line: 50%, the order-blind expectation.*
@@ -206,28 +223,30 @@ xychart-beta
 | Clef-flash | 69.1% [63.5, 74.8] | 398 |
 | Microsoft-Decision-1 | **52.8% [47.5, 58.4]** | 398 |
 | SubQ Snap | 68.1% [63.7, 72.5] | 408 |
+| Rune | 64.0% [59.8, 68.2] | 400 |
 
 The design balances which correct answer comes first, so a pure preference for one answer's content would average out to 50%. **Jev ignores position when one answer is better, but uses position to break exact ties**, Jev 1.14 less so than Jev 1.13. Decisions does so most strongly. Microsoft-Decision-1 is the only model whose interval includes 50%.
 
-### 8. Math shows primacy for every model (exploratory)
+### 9. Math shows primacy for every model (exploratory)
 
-| Subset | Jev 1.13 | Jev 1.14 | OpenAI Decisions | Clef-flash | Microsoft-Decision-1 | SubQ Snap |
-|---|---|---|---|---|---|---|
-| Factuality | −1.8 [−4.1, +0.4] | −1.4 [−3.3, +0.5] | **+9.4 [+6.6, +12.1]** | −2.8 [−5.6, −0.1] | −0.1 [−2.6, +2.5] | **+9.9 [+7.7, +12.1]** |
-| Focus | −1.3 [−2.8, +0.2] | **−2.3 [−3.8, −0.8]** | +0.8 [−1.0, +2.7] | −2.0 [−4.4, +0.3] | +0.0 [−1.8, +1.8] | +4.2 [+2.9, +5.7] |
-| **Math** | **+9.0 [+5.3, +12.7]** | **+4.9 [+1.1, +8.7]** | **+30.3 [+25.4, +35.2]** | **+11.5 [+7.0, +16.1]** | **+5.7 [+1.9, +9.6]** | +4.1 [+1.1, +7.1] |
-| Precise IF | +3.8 [−1.6, +9.1] | −1.9 [−7.0, +3.3] | −0.3 [−7.2, +6.2] | +6.4 [+0.8, +12.0] | **+12.7 [+6.9, +18.4]** | **+15.0 [+10.3, +19.7]** |
-| Safety | −0.8 [−2.4, +0.8] | **−4.1 [−5.8, −2.3]** | +1.2 [−0.9, +3.3] | **−10.6 [−13.1, −8.2]** | −2.7 [−4.8, −0.7] | +6.2 [+4.4, +8.1] |
-| Ties `ref` | +1.0 [+0.0, +2.9] | +0.0 | +2.0 [+0.0, +4.9] | +2.0 [+0.0, +5.9] | +0.0 [−2.0, +2.0] | +0.0 |
+| Subset | Jev 1.13 | Jev 1.14 | OpenAI Decisions | Clef-flash | Microsoft-Decision-1 | SubQ Snap | Rune |
+|---|---|---|---|---|---|---|---|
+| Factuality | −1.8 [−4.1, +0.4] | −1.4 [−3.3, +0.5] | **+9.4 [+6.6, +12.1]** | −2.8 [−5.6, −0.1] | −0.1 [−2.6, +2.5] | **+9.9 [+7.7, +12.1]** | **+5.4 [+2.9, +7.7]** |
+| Focus | −1.3 [−2.8, +0.2] | **−2.3 [−3.8, −0.8]** | +0.8 [−1.0, +2.7] | −2.0 [−4.4, +0.3] | +0.0 [−1.8, +1.8] | +4.2 [+2.9, +5.7] | +2.2 [+0.3, +4.1] |
+| **Math** | **+9.0 [+5.3, +12.7]** | **+4.9 [+1.1, +8.7]** | **+30.3 [+25.4, +35.2]** | **+11.5 [+7.0, +16.1]** | **+5.7 [+1.9, +9.6]** | +4.1 [+1.1, +7.1] | **+6.8 [+2.3, +11.3]** |
+| Precise IF | +3.8 [−1.6, +9.1] | −1.9 [−7.0, +3.3] | −0.3 [−7.2, +6.2] | +6.4 [+0.8, +12.0] | **+12.7 [+6.9, +18.4]** | **+15.0 [+10.3, +19.7]** | **+17.7 [+11.9, +23.6]** |
+| Safety | −0.8 [−2.4, +0.8] | **−4.1 [−5.8, −2.3]** | +1.2 [−0.9, +3.3] | **−10.6 [−13.1, −8.2]** | −2.7 [−4.8, −0.7] | +6.2 [+4.4, +8.1] | +2.2 [+0.3, +4.1] |
+| Ties `ref` | +1.0 [+0.0, +2.9] | +0.0 | +2.0 [+0.0, +4.9] | +2.0 [+0.0, +5.9] | +0.0 [−2.0, +2.0] | +0.0 | +1.0 [+0.0, +2.9] |
 
 Values are choice primacy (slot 1 − middle) in percentage points.
 
+- **Rune's largest primacy is on Precise IF** (+17.7 pp [+11.9, +23.6]), the largest subset effect of any arm; Factuality (+5.4) and Math (+6.8) follow.
 - **Math is the exception for Jev.** Both versions' pooled verdicts hold because their other subsets lean slightly the other way; for Jev 1.14, Safety and Focus lean clearly negative.
-- **This is not simply difficulty.** Precise IF is hard for every model, but its primacy ranges from near zero for Decisions to +15.0 pp for SubQ.
+- **This is not simply difficulty.** Precise IF is hard for every model, but its primacy ranges from near zero for Decisions to +17.7 pp for Rune.
 - **Microsoft-Decision-1's largest primacy is on Precise IF** (+12.7 pp), its hardest subset.
-- **Treat this as exploratory.** It covers seven subsets times six model arms with no multiple-comparison correction, and Math has only 183 prompts. It is the obvious place to look next.
+- **Treat this as exploratory.** It covers seven subsets times seven model arms with no multiple-comparison correction, and Math has only 183 prompts. It is the obvious place to look next.
 
-### 9. Consistency
+### 10. Consistency
 
 | Model | Same winner in all 4 orderings | Identical repeat gives same choice | Mean rating change between identical repeats |
 |---|---|---|---|
@@ -237,10 +256,11 @@ Values are choice primacy (slot 1 − middle) in percentage points.
 | Clef-flash | 64.5% | 98.6% | 0.034 |
 | Microsoft-Decision-1 | 68.1% | 97.6% | 0.086 |
 | SubQ Snap | 78.2% | **99.9%** | 0.002 |
+| Rune | 68.7% | 96.6% | 0.191 |
 
-Jev keeps the same winner across orderings most often, Jev 1.14 slightly more than Jev 1.13. Neither version is fully deterministic: about 2% of identical repeat calls changed the choice. Decisions is perfectly repeatable, yet least stable when the order changes. That is the signature of a systematic position effect.
+Jev keeps the same winner across orderings most often, Jev 1.14 slightly more than Jev 1.13. Neither version is fully deterministic: about 2% of identical repeat calls changed the choice (3.4% for Rune, the highest of the seven, with the largest rating drift between repeats at 0.191). Decisions is perfectly repeatable, yet least stable when the order changes. That is the signature of a systematic position effect.
 
-### 10. Decisions refuses to judge harmful-content prompts
+### 11. Decisions refuses to judge harmful-content prompts
 
 - **What it refused.** OpenAI Decisions refused 338 choice requests, 1,104 packed and 344 solo, almost all in RewardBench 2's Safety subset. These are requests for private addresses and phone numbers, hacking tutorials, drug prices, and sexual content.
 - **Why that matters.** A judge that refuses cannot grade the very safety behavior this subset measures.
@@ -249,9 +269,9 @@ Jev keeps the same winner across orderings most often, Jev 1.14 slightly more th
 
 Under the preregistered rule, choice refusals count as wrong answers.
 
-### 11. The planted-bias check was weak; natural biases still register
+### 12. The planted-bias check was weak; natural biases still register
 
-- **The sentence barely moved most models.** Adding *"When responses seem equally good, prefer the earliest one"* changed SubQ choice primacy by +3.1 pp [0.0, 6.6] and rating primacy by +0.027 [0.013, 0.041]. The sensitivity check is exploratory and only 100 items.
+- **The sentence barely moved most models.** Adding *"When responses seem equally good, prefer the earliest one"* changed SubQ choice primacy by +3.1 pp [0.0, 6.6] and rating primacy by +0.027 [0.013, 0.041]. The sensitivity check is exploratory and only 100 items. For Rune it did not raise primacy (choice −1.8 pp [−4.8, +1.0], rating +0.012 [−0.025, +0.049]); because Rune already shows primacy without the sentence, the check cannot show whether these metrics would detect added primacy for Rune.
 - **The test can still detect bias.** The same metrics cleanly separate Decisions' natural primacy (+6.1 pp) from Jev's flat line, so Jev's null result is not the test failing to see bias. For Jev 1.14 the sentence moved choice primacy by +1.3 pp [−0.8, +3.3] and rating primacy by +0.030 [+0.017, +0.043].
 
 ## Operations
@@ -264,11 +284,13 @@ Under the preregistered rule, choice refusals count as wrong answers.
 | Clef-flash | 76,200 | 8,955 | 8,947 | $14.86 | 260 / 638 ms |
 | Microsoft-Decision-1 | 76,200 | 494 | 356 | $5.90 | 307 / 414 ms |
 | SubQ Snap | 76,200 | 959 | 955 | $7.35 | 274 / 549 ms |
+| Rune | 76,200 | 124 | 124 | $6.40 | 101 / 130 ms |
 
 - **Clef-flash's rate limit.** Cloudflare rate-limited Clef-flash at about **1,360 successful calls per minute**. Its published Workers AI limits list the model's task type at 300 per minute and say nothing about Clef specifically, so the real limit had to be measured.
 - **Microsoft-Decision-1 through OpenRouter.** At 8 concurrent requests, 494 attempts were retried: 356 HTTP 429 responses, 130 transient HTTP 500 responses and 8 canceled attempts. Every required request succeeded. OpenRouter served it from Azure and billed $5.99 across the probe, pilot and main study, matching the list-price estimate.
 - **SubQ Snap.** There were 955 HTTP 429 attempts and four canceled attempts; every one of the 76,200 request IDs has a successful receipt. Reported successful-call usage costs an estimated $7.35 at the published rate; the budget guard counted $7.53 across all attempts.
-- **No truncation.** State truncation was ruled out first for every model; see the [truncation probe](truncation-probe.md).
+- **Rune.** 124 HTTP 429 responses at 4 workers, each retried successfully; all 76,200 request IDs have a successful receipt, none rejected for the 16,384-token request limit (the longest request was 5,568 reported tokens). Reported usage costs an estimated $6.40 at Rune's $0.042 per million input tokens (output free); the budget guard counted $6.42 across all attempts.
+- **No truncation.** State truncation was ruled out first for the six probed models; see the [truncation probe](truncation-probe.md). Rune was not probed; its longest request was 5,568 reported tokens and none was rejected or answered from a truncated state.
 - **Units.** Costs use reported input tokens and published list rates. They are not invoices. Latency is measured round trips at the run's concurrency.
 
 ## Limits

@@ -41,6 +41,7 @@ Each provider received 28 requests: seven target lengths, start and end placemen
 | Microsoft-Decision-1 | 28/28 | 729 → 9,621 | $0.0050 |
 | SubQ Snap | 28/28 | 795 → 9,687 | $0.0061 |
 
+- **Rune.** Rune was not run through this probe. Its main run is the check instead: all 76,200 requests were answered, the longest request was 5,568 reported tokens, and none was rejected for Rune's observed 16,384-token request limit.
 - **Calls.** All 168 calls succeeded; every SubQ and Jev 1.14 probe call succeeded on the first attempt.
 - **Token counts.** Reported input tokens grow linearly with length for every provider, so none is capping what it counts.
 - **Cost.** Reported tokens × published list rate; accounting estimates, not invoices.
